@@ -1,7 +1,8 @@
-import 'check_types.dart';
 import 'dart:typed_data';
 
-Uint8List encode(int number, [Uint8List buffer, int offset]) {
+import 'package:bitcoin_flutter/src/utils/check_types.dart';
+
+Uint8List encode(int number, [Uint8List? buffer, int? offset]) {
   if (!isUint(number, 53)) ;
 
   buffer = buffer ?? new Uint8List(encodingLength(number));
@@ -30,36 +31,27 @@ Uint8List encode(int number, [Uint8List buffer, int offset]) {
   return buffer;
 }
 
-int decode(Uint8List buffer, [int offset]) {
+int decode(Uint8List buffer, [int? offset]) {
   offset = offset ?? 0;
   ByteData bytes = buffer.buffer.asByteData();
   final first = bytes.getUint8(offset);
 
-  // 8 bit
-  if (first < 0xfd) {
-    return first;
-    // 16 bit
-  } else if (first == 0xfd) {
-    return bytes.getUint16(offset + 1, Endian.little);
 
-    // 32 bit
-  } else if (first == 0xfe) {
-    return bytes.getUint32(offset + 1, Endian.little);
-    // 64 bit
-  } else {
-    var lo = bytes.getUint32(offset + 1, Endian.little);
-    var hi = bytes.getUint32(offset + 5, Endian.little);
-    var number = hi * 0x0100000000 + lo;
-    if (!isUint(number, 53)) throw ArgumentError("Expected UInt53");
-    return number;
-  }
+  if (first < 0xfd) return first; // 8 bit
+  if (first == 0xfd) return bytes.getUint16(offset + 1, Endian.little); // 16 bit
+  if (first == 0xfe) return bytes.getUint32(offset + 1, Endian.little); // 32 bit
+
+  // 64 bit
+  var lo = bytes.getUint32(offset + 1, Endian.little);
+  var hi = bytes.getUint32(offset + 5, Endian.little);
+  var number = hi * 0x0100000000 + lo;
+  if (!isUint(number, 53)) throw ArgumentError('Expected UInt53');
+  return number;
 }
 
 int encodingLength(int number) {
-  if (!isUint(number, 53)) throw ArgumentError("Expected UInt53");
-  return (number < 0xfd
-      ? 1
-      : number <= 0xffff ? 3 : number <= 0xffffffff ? 5 : 9);
+  if (!isUint(number, 53)) throw ArgumentError('Expected UInt53');
+  return (number < 0xfd ? 1 : number <= 0xffff ? 3 : number <= 0xffffffff ? 5 : 9);
 }
 
 int readUInt64LE(ByteData bytes, int offset) {

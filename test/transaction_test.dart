@@ -7,8 +7,7 @@ import '../lib/src/utils/script.dart' as bscript;
 import '../lib/src/transaction.dart';
 
 main() {
-  final fixtures = json.decode(new File('test/fixtures/transaction.json')
-      .readAsStringSync(encoding: utf8));
+  final fixtures = json.decode(new File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8));
   final valids = (fixtures['valid'] as List<dynamic>);
 
   group('Transaction', () {
@@ -72,13 +71,13 @@ main() {
       test('defaults to empty script, and 0xffffffff SEQUENCE number', () {
         final tx = new Transaction();
         tx.addInput(prevTxHash, 0);
-        expect(tx.ins[0].script.length, 0);
+        expect(tx.ins[0].script!.length, 0);
         expect(tx.ins[0].sequence, 0xffffffff);
       });
       (fixtures['invalid']['addInput'] as List<dynamic>).forEach((f) {
         test('throws on ' + f['exception'], () {
           final tx = new Transaction();
-          final hash = HEX.decode(f['hash']);
+          final hash = Uint8List.fromList(HEX.decode(f['hash']));
           try {
             expect(tx.addInput(hash, f['index']), isArgumentError);
           } catch (err) {
@@ -152,7 +151,7 @@ Transaction fromRaw(raw, [isWitness]) {
   tx.locktime = raw['locktime'];
 
   (raw['ins'] as List<dynamic>).asMap().forEach((indx, txIn) {
-    final txHash = HEX.decode(txIn['hash']);
+    final txHash = Uint8List.fromList(HEX.decode(txIn['hash']));
     var scriptSig;
 
     if (txIn['data'] != null) {

@@ -32,7 +32,6 @@ main() {
             Address.validateAddress(
                 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4'),
             true);
-        // expect(Address.validateAddress('tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy'), true); TODO
       });
       test('bech32 addresses and invalid network', () {
         expect(

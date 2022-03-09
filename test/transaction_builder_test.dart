@@ -1,8 +1,10 @@
-import 'package:test/test.dart';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:hex/hex.dart';
+import 'package:test/test.dart';
+
 import '../lib/src/models/networks.dart';
 import '../lib/src/ecpair.dart';
 import '../lib/src/transaction.dart';
@@ -31,7 +33,7 @@ constructSign(f, TransactionBuilder txb) {
   return txb;
 }
 
-TransactionBuilder construct(f, [bool dontSign]) {
+TransactionBuilder construct(f, [bool? dontSign]) {
   final network = NETWORKS[f['network']];
   final txb = new TransactionBuilder(network: network);
   if (f['version'] != null) txb.setVersion(f['version']);
@@ -70,14 +72,12 @@ main() {
       new File('test/fixtures/transaction_builder.json')
           .readAsStringSync(encoding: utf8));
   group('TransactionBuilder', () {
-    final keyPair = ECPair.fromPrivateKey(HEX.decode(
-        '0000000000000000000000000000000000000000000000000000000000000001'));
+    final keyPair = ECPair.fromPrivateKey(Uint8List.fromList(HEX.decode('0000000000000000000000000000000000000000000000000000000000000001')));
     final scripts = [
       '1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
       '1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP'
     ].map((x) => Address.addressToOutputScript(x));
-    final txHash = HEX.decode(
-        '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
+    final txHash = HEX.decode('0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
     group('fromTransaction', () {
       (fixtures['valid']['build'] as List<dynamic>).forEach((f) {
         test('returns TransactionBuilder, with ${f['description']}', () {
@@ -109,11 +109,10 @@ main() {
           final txAfter = f['incomplete'] ? txb.buildIncomplete() : txb.build();
 
           for (var i = 0; i < txAfter.ins.length; i++) {
-            test(bscript.toASM(txAfter.ins[i].script),
-                f['inputs'][i]['scriptSigAfter']);
+            test(bscript.toASM(txAfter.ins[i].script!), f['inputs'][i]['scriptSigAfter']);
           }
           for (var i = 0; i < txAfter.outs.length; i++) {
-            test(bscript.toASM(txAfter.outs[i].script),
+            test(bscript.toASM(txAfter.outs[i].script!),
                 f['outputs'][i]['script']);
           }
         });
@@ -131,7 +130,7 @@ main() {
         });
     });
     group('addInput', () {
-      TransactionBuilder txb;
+      late TransactionBuilder txb;
       setUp(() {
         txb = new TransactionBuilder();
       });
@@ -155,8 +154,8 @@ main() {
       });
       test('accepts a prevTx, index [and sequence number]', () {
         final prevTx = new Transaction();
-        prevTx.addOutput(scripts.elementAt(0), 0);
-        prevTx.addOutput(scripts.elementAt(1), 1);
+        prevTx.addOutput(scripts.elementAt(0)!, 0);
+        prevTx.addOutput(scripts.elementAt(1)!, 1);
 
         final vin = txb.addInput(prevTx, 1, 54);
         expect(vin, 0);
@@ -186,7 +185,7 @@ main() {
       });
     });
     group('addOutput', () {
-      TransactionBuilder txb;
+      late TransactionBuilder txb;
       setUp(() {
         txb = new TransactionBuilder();
       });
@@ -197,16 +196,16 @@ main() {
                 .address;
         final vout = txb.addOutput(address, 1000);
         expect(vout, 0);
-        final txout = txb.tx.outs[0];
-        expect(txout.script, scripts.elementAt(0));
-        expect(txout.value, 1000);
+        final txOut = txb.tx.outs[0];
+        expect(txOut.script, scripts.elementAt(0));
+        expect(txOut.value, 1000);
       });
       test('accepts a ScriptPubKey and value', () {
         final vout = txb.addOutput(scripts.elementAt(0), 1000);
         expect(vout, 0);
-        final txout = txb.tx.outs[0];
-        expect(txout.script, scripts.elementAt(0));
-        expect(txout.value, 1000);
+        final txOut = txb.tx.outs[0];
+        expect(txOut.script, scripts.elementAt(0));
+        expect(txOut.value, 1000);
       });
       test('throws if address is of the wrong network', () {
         try {
