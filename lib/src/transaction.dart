@@ -59,11 +59,11 @@ class Transaction {
     }
   }
 
-  setInputScript(int index, Uint8List scriptSig) {
+  setInputScript(int index, Uint8List? scriptSig) {
     ins[index].script = scriptSig;
   }
 
-  setWitness(int index, List<Uint8List> witness) {
+  setWitness(int index, List<Uint8List>? witness) {
     ins[index].witness = witness;
   }
 

@@ -1,19 +1,19 @@
 import 'dart:typed_data';
 
-import 'package:bip32/src/utils/ecurve.dart' show isPoint;
+import 'package:bip32/src/utils/ecurve.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 
-import '../crypto.dart';
-import '../models/networks.dart';
-import '../payments/index.dart' show PaymentData;
-import '../utils/script.dart' as bscript;
-import '../utils/constants/op.dart';
+import 'package:bitcoin_flutter/src/crypto.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/utils/constants/op.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 
 class P2PKH {
   late PaymentData data;
   late NetworkType network;
 
-  P2PKH({required data, network}) {
+  P2PKH({required PaymentData data, NetworkType? network}) {
     this.network = network ?? bitcoin;
     this.data = data;
     _init();
@@ -35,13 +35,11 @@ class P2PKH {
       _getDataFromHash();
       _getDataFromChunk();
     } else if (data.input != null) {
-      List<dynamic> _chunks = bscript.decompile(data.input)!;
+      List<dynamic> _chunks = decompile(data.input)!;
       _getDataFromChunk(_chunks);
       if (_chunks.length != 2) throw new ArgumentError('Input is invalid');
-      if (!bscript.isCanonicalScriptSignature(_chunks[0]))
-        throw new ArgumentError('Input has invalid signature');
-      if (!isPoint(_chunks[1]))
-        throw new ArgumentError('Input has invalid pubkey');
+      if (!isCanonicalScriptSignature(_chunks[0])) throw new ArgumentError('Input has invalid signature');
+      if (!isPoint(_chunks[1])) throw new ArgumentError('Input has invalid pubkey');
     } else {
       throw new ArgumentError('Not enough data');
     }
@@ -53,11 +51,8 @@ class P2PKH {
       data.hash = hash160(data.pubkey!);
       _getDataFromHash();
     }
-    if (data.signature == null && _chunks != null)
-      data.signature = (_chunks[0] is int) ? new Uint8List.fromList([_chunks[0]]) : _chunks[0];
-    if (data.input == null && data.pubkey != null && data.signature != null) {
-      data.input = bscript.compile([data.signature, data.pubkey]);
-    }
+    if (data.signature == null && _chunks != null) data.signature = (_chunks[0] is int) ? new Uint8List.fromList([_chunks[0]]) : _chunks[0];
+    if (data.input == null && data.pubkey != null && data.signature != null) data.input = compile([data.signature, data.pubkey]);
   }
 
   void _getDataFromHash() {
@@ -68,7 +63,7 @@ class P2PKH {
       data.address = bs58check.encode(payload);
     }
     if (data.output == null) {
-      data.output = bscript.compile([
+      data.output = compile([
         OPS['OP_DUP'],
         OPS['OP_HASH160'],
         data.hash,

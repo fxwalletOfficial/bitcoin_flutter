@@ -17,7 +17,7 @@ class PaymentData {
     this.input,
     this.signature,
     this.witness
-});
+  });
 
   @override
   String toString() {

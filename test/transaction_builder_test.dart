@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:bitcoin_flutter/src/address.dart';
+import 'package:bitcoin_flutter/src/ecpair.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/transaction.dart';
+import 'package:bitcoin_flutter/src/transaction_builder.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 
-import '../lib/src/models/networks.dart';
-import '../lib/src/ecpair.dart';
-import '../lib/src/transaction.dart';
-import '../lib/src/address.dart';
-import '../lib/src/transaction_builder.dart';
-import '../lib/src/utils/script.dart' as bscript;
-import '../lib/src/payments/index.dart' show PaymentData;
-import '../lib/src/payments/p2pkh.dart';
 
 final NETWORKS = {'bitcoin': bitcoin, 'testnet': testnet};
 
@@ -52,7 +52,7 @@ TransactionBuilder construct(f, [bool? dontSign]) {
     }
     var prevTxScript;
     if (input['prevTxScript'] != null) {
-      prevTxScript = bscript.fromASM(input['prevTxScript']);
+      prevTxScript = fromASM(input['prevTxScript']);
     }
     txb.addInput(prevTx, input['vout'], input['sequence'], prevTxScript);
   });
@@ -60,7 +60,7 @@ TransactionBuilder construct(f, [bool? dontSign]) {
     if (output['address'] != null) {
       txb.addOutput(output['address'], output['value']);
     } else {
-      txb.addOutput(bscript.fromASM(output['script']), output['value']);
+      txb.addOutput(fromASM(output['script']), output['value']);
     }
   });
   if (dontSign != null && dontSign) return txb;
@@ -98,21 +98,21 @@ main() {
               final txHash2 = Uint8List.fromList(
                   HEX.decode(input['txId']).reversed.toList());
               tx.addInput(txHash2, input['vout'], null,
-                  bscript.fromASM(input['scriptSig']));
+                  fromASM(input['scriptSig']));
             });
           f['outputs'] as List<dynamic>
             ..forEach((output) {
-              tx.addOutput(bscript.fromASM(output['script']), output['value']);
+              tx.addOutput(fromASM(output['script']), output['value']);
             });
 
           final txb = TransactionBuilder.fromTransaction(tx);
           final txAfter = f['incomplete'] ? txb.buildIncomplete() : txb.build();
 
           for (var i = 0; i < txAfter.ins.length; i++) {
-            test(bscript.toASM(txAfter.ins[i].script!), f['inputs'][i]['scriptSigAfter']);
+            test(toASM(txAfter.ins[i].script!), f['inputs'][i]['scriptSigAfter']);
           }
           for (var i = 0; i < txAfter.outs.length; i++) {
-            test(bscript.toASM(txAfter.outs[i].script!),
+            test(toASM(txAfter.outs[i].script!),
                 f['outputs'][i]['script']);
           }
         });

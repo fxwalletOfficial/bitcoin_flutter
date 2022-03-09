@@ -184,15 +184,15 @@ class TransactionBuilder {
             data: new PaymentData(pubkey: _inputs[i].pubkeys![0], signature: _inputs[i].signatures![0]),
             network: network
           );
-          tx.setInputScript(i, payment.data.input!);
-          tx.setWitness(i, payment.data.witness!);
+          tx.setInputScript(i, payment.data.input);
+          tx.setWitness(i, payment.data.witness);
         } else if (_inputs[i].prevOutType == SCRIPT_TYPES['P2WPKH']) {
           P2WPKH payment = new P2WPKH(
             data: new PaymentData(pubkey: _inputs[i].pubkeys![0], signature: _inputs[i].signatures![0]),
             network: network
           );
-          tx.setInputScript(i, payment.data.input!);
-          tx.setWitness(i, payment.data.witness!);
+          tx.setInputScript(i, payment.data.input);
+          tx.setWitness(i, payment.data.witness);
         }
       } else if (!allowIncomplete) {
         throw new ArgumentError('Transaction is not complete');
