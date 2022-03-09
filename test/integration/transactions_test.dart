@@ -1,16 +1,15 @@
 import 'package:test/test.dart';
 
-import '../../lib/src/ecpair.dart';
-import '../../lib/src/transaction_builder.dart';
-import '../../lib/src/models/networks.dart' as NETWORKS;
-import '../../lib/src/payments/p2wpkh.dart' show P2WPKH;
-import '../../lib/src/payments/index.dart' show PaymentData;
+import 'package:bitcoin_flutter/src/ecpair.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
+import 'package:bitcoin_flutter/src/transaction_builder.dart';
 
 main() {
   group('bitcoinjs-lib (transactions)', () {
     test('can create a 1-to-1 Transaction', () {
-      final alice = ECPair.fromWIF(
-          'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy');
+      final alice = ECPair.fromWIF('L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy');
       final txb = new TransactionBuilder();
 
       txb.setVersion(1);
@@ -44,9 +43,9 @@ main() {
     });
 
     test('can create (and broadcast via 3PBP) a Transaction, w/ a P2WPKH input', () {
-      final alice = ECPair.fromWIF('cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am', network: NETWORKS.testnet);
-      final p2wpkh = new P2WPKH(data: new PaymentData(pubkey: alice.publicKey), network: NETWORKS.testnet).data;
-      final txb = new TransactionBuilder(network: NETWORKS.testnet);
+      final alice = ECPair.fromWIF('cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am', network: testnet);
+      final p2wpkh = new P2WPKH(data: new PaymentData(pubkey: alice.publicKey), network: testnet).data;
+      final txb = new TransactionBuilder(network: testnet);
       txb.setVersion(1);
       txb.addInput('53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b', 0, null, p2wpkh.output); // Alice's previous transaction output, has 200000 satoshis
       txb.addOutput('tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', 1000000);

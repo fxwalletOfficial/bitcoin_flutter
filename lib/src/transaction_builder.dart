@@ -2,15 +2,15 @@ import 'dart:typed_data';
 
 import 'package:hex/hex.dart';
 
-import 'utils/script.dart' as bscript;
-import 'ecpair.dart';
-import 'models/networks.dart';
-import 'transaction.dart';
-import 'address.dart';
-import 'payments/index.dart' show PaymentData;
-import 'payments/p2pkh.dart';
-import 'payments/p2wpkh.dart';
-import 'classify.dart';
+import 'package:bitcoin_flutter/src/address.dart';
+import 'package:bitcoin_flutter/src/classify.dart';
+import 'package:bitcoin_flutter/src/ecpair.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
+import 'package:bitcoin_flutter/src/transaction.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 
 class TransactionBuilder {
   late NetworkType network;
@@ -155,7 +155,7 @@ class TransactionBuilder {
       if (HEX.encode(ourPubKey!).compareTo(HEX.encode(input.pubkeys![i]!)) != 0) continue;
 
       final signature = keyPair.sign(signatureHash);
-      input.signatures![i] = bscript.encodeSignature(signature, hashType);
+      input.signatures![i] = encodeSignature(signature, hashType);
       signed = true;
     }
     if (!signed) throw new ArgumentError('Key pair cannot sign for this input');

@@ -2,16 +2,16 @@ import 'dart:typed_data';
 
 import 'package:hex/hex.dart';
 
-import 'payments/index.dart' show PaymentData;
-import 'payments/p2pkh.dart' show P2PKH;
-import 'payments/p2pk.dart' show P2PK;
-import 'payments/p2wpkh.dart' show P2WPKH;
-import 'crypto.dart' as bcrypto;
-import 'classify.dart';
-import 'utils/check_types.dart';
-import 'utils/script.dart' as bscript;
-import 'utils/constants/op.dart';
-import 'utils/varuint.dart' as varuint;
+import 'package:bitcoin_flutter/src/classify.dart';
+import 'package:bitcoin_flutter/src/crypto.dart' as bcrypto;
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2pk.dart';
+import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
+import 'package:bitcoin_flutter/src/utils/check_types.dart';
+import 'package:bitcoin_flutter/src/utils/constants/op.dart';
+import 'package:bitcoin_flutter/src/utils/varuint.dart' as varuint;
+import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
 
 const DEFAULT_SEQUENCE = 0xffffffff;
 const SIGHASH_ALL = 0x01;

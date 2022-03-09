@@ -3,10 +3,10 @@ import 'dart:typed_data';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:bech32/bech32.dart';
 
-import 'models/networks.dart';
-import 'payments/index.dart' show PaymentData;
-import 'payments/p2pkh.dart';
-import 'payments/p2wpkh.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
 
 class Address {
   static bool validateAddress(String address, [NetworkType? nw]) {

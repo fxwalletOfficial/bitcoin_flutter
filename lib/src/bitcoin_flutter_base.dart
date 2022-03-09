@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:bitcoin_flutter/src/utils/magic_hash.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:hex/hex.dart';
 
-import 'models/networks.dart';
-import 'payments/index.dart' show PaymentData;
-import 'payments/p2pkh.dart';
-import 'ecpair.dart';
+import 'package:bitcoin_flutter/src/ecpair.dart';
+import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/payments/index.dart';
+import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
+import 'package:bitcoin_flutter/src/utils/magic_hash.dart';
 
 /// Checks if you are awesome. Spoiler: you are.
 class HDWallet {
