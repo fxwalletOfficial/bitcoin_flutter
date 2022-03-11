@@ -123,21 +123,21 @@ class TransactionBuilder {
         if (type == SCRIPT_TYPES['P2WPKH']) {
           input.prevOutType = SCRIPT_TYPES['P2WPKH']!;
           input.hasWitness = true;
-          input.signatures = [];
+          input.signatures = [null];
           input.pubkeys = [ourPubKey!];
           input.signScript = new P2PKH(data: new PaymentData(pubkey: ourPubKey), network: this.network).data.output!;
         } else {
           // DRY CODE
           Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey!);
           input.prevOutType = SCRIPT_TYPES['P2PKH']!;
-          input.signatures = [];
+          input.signatures = [null];
           input.pubkeys = [ourPubKey];
           input.signScript = prevOutScript;
         }
       } else {
         Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey!);
         input.prevOutType = SCRIPT_TYPES['P2PKH']!;
-        input.signatures = [];
+        input.signatures = [null];
         input.pubkeys = [ourPubKey];
         input.signScript = prevOutScript;
       }
@@ -153,6 +153,7 @@ class TransactionBuilder {
     var signed = false;
     for (var i = 0; i < input.pubkeys!.length; i++) {
       if (HEX.encode(ourPubKey!).compareTo(HEX.encode(input.pubkeys![i]!)) != 0) continue;
+      if (input.signatures![i] != null) throw new ArgumentError('Signature already exist');
 
       final signature = keyPair.sign(signatureHash);
       input.signatures![i] = encodeSignature(signature, hashType);
