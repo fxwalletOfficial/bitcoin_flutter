@@ -95,6 +95,7 @@ class HDWallet {
 class Wallet {
   ECPair _keyPair;
   P2PKH _p2pkh;
+  NetworkType? network;
 
   String? get privKey => HEX.encode(_keyPair.privateKey!);
 
@@ -103,8 +104,6 @@ class Wallet {
   String? get wif => _keyPair.toWIF();
 
   String? get address => _p2pkh.data.address;
-
-  NetworkType? network;
 
   Wallet(this._keyPair, this._p2pkh, this.network);
 

@@ -86,11 +86,7 @@ List<dynamic>? decompile(dynamic buffer) {
 
       // decompile minimally
       final op = asMinimalOP(data);
-      if (op != null) {
-        chunks.add(op);
-      } else {
-        chunks.add(data);
-      }
+      chunks.add(op != null ? op : data);
 
       // opcode
     } else {

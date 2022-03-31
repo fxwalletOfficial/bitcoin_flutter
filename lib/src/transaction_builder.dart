@@ -140,7 +140,6 @@ class TransactionBuilder {
 
         if (expanded.pubkeys == null) throw ArgumentError('${expanded.type} not supported as redeemScript (${bscript.toASM(redeemScript)})');
 
-
         if (input.signatures != null && input.signatures!.any((x) => x != null)) expanded.signatures = input.signatures;
 
         Uint8List? signScript = redeemScript;
@@ -183,12 +182,7 @@ class TransactionBuilder {
         input.signScript = prevOutScript;
       }
     }
-    var signatureHash;
-    if (input.hasWitness!) {
-      signatureHash = _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType);
-    } else {
-      signatureHash = _tx.hashForSignature(vin, input.signScript, hashType);
-    }
+    var signatureHash = input.hasWitness ?  _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType) : _tx.hashForSignature(vin, input.signScript, hashType);
 
     // enforce in order signing of public keys
     var signed = false;
@@ -232,9 +226,7 @@ class TransactionBuilder {
 
     if (!allowIncomplete) {
       // do not rely on this, its merely a last resort
-      if (_overMaximumFees(tx.virtualSize())!) {
-        throw ArgumentError('Transaction has absurd fees');
-      }
+      if (_overMaximumFees(tx.virtualSize())!) throw ArgumentError('Transaction has absurd fees');
     }
 
     return tx;
@@ -286,35 +278,31 @@ class TransactionBuilder {
   }
 
   bool _needsOutputs(int signingHashType) {
-    if (signingHashType == SIGHASH_ALL) {
-      return _tx.outs.isEmpty;
-    }
+    if (signingHashType == SIGHASH_ALL) return _tx.outs.isEmpty;
+
     // if inputs are being signed with SIGHASH_NONE, we don't strictly need outputs
     // .build() will fail, but .buildIncomplete() is OK
-    return (_tx.outs.isEmpty) &&
-        _inputs!.map((input) {
-          if (input.signatures == null || input.signatures!.isEmpty) {
-            return false;
-          }
-          return input.signatures!.map((signature) {
-            if (signature == null) return false; // no signature, no issue
-            final hashType = _signatureHashType(signature);
-            if (hashType & SIGHASH_NONE != 0) {
-              return false;
-            } // SIGHASH_NONE doesn't care about outputs
-            return true; // SIGHASH_* does care
-          }).contains(true);
-        }).contains(true);
+    return (_tx.outs.isEmpty) && _inputs!.map((input) {
+      if (input.signatures == null || input.signatures!.isEmpty) return false;
+
+      return input.signatures!.map((signature) {
+        if (signature == null) return false; // no signature, no issue
+        final hashType = _signatureHashType(signature);
+        if (hashType & SIGHASH_NONE != 0) {
+          return false;
+        } // SIGHASH_NONE doesn't care about outputs
+        return true; // SIGHASH_* does care
+      }).contains(true);
+    }).contains(true);
   }
 
   bool _canSign(Input input) {
     return input.signScript != null &&
-        // input.signType != null &&
-        input.pubkeys != null &&
-        input.signatures != null &&
-        input.signatures!.length == input.pubkeys!.length &&
-        input.pubkeys!.isNotEmpty &&
-        (input.hasWitness == false || input.value != null);
+      input.pubkeys != null &&
+      input.signatures != null &&
+      input.signatures!.length == input.pubkeys!.length &&
+      input.pubkeys!.isNotEmpty &&
+      (input.hasWitness == false || input.value != null);
   }
 
   int _addInputUnsafe(Uint8List hash, int? vout, Input options) {

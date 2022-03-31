@@ -25,7 +25,7 @@ const ADVANCED_TRANSACTION_FLAG = 0x01;
 final EMPTY_SCRIPT = Uint8List.fromList([]);
 final EMPTY_WITNESS = <Uint8List>[];
 final ZERO = HEX.decode('0000000000000000000000000000000000000000000000000000000000000000');
-final ONE = HEX.decode('0000000000000000000000000000000000000000000000000000000000000001');
+final ONE = Uint8List.fromList(HEX.decode('0000000000000000000000000000000000000000000000000000000000000001'));
 final VALUE_UINT64_MAX = HEX.decode('ffffffffffffffff');
 final BLANK_OUTPUT = Output(script: EMPTY_SCRIPT, valueBuffer: Uint8List.fromList(VALUE_UINT64_MAX));
 const MIN_VERSION_NO_TOKENS = 3;
@@ -198,7 +198,7 @@ class Transaction {
     return bcrypto.hash256(tBuffer);
   }
 
-  List<int> hashForSignature(int inIndex, Uint8List? prevOutScript, int? hashType) {
+  Uint8List hashForSignature(int inIndex, Uint8List? prevOutScript, int? hashType) {
     if (inIndex >= ins.length) return ONE;
     final ourScript = bscript.compile(bscript.decompile(prevOutScript)!.where((x) {
       return x != OPS['OP_CODESEPARATOR'];
@@ -565,43 +565,34 @@ class Input {
   String? prevOutType;
   String? redeemScriptType;
   String? witnessScriptType;
-  bool? hasWitness;
+  bool hasWitness = false;
   List<Uint8List?>? pubkeys;
   List<Uint8List?>? signatures;
   List<Uint8List?>? witness;
   int? maxSignatures;
 
   Input({
-      this.hash,
-      this.index,
-      this.script,
-      this.sequence,
-      this.value,
-      this.prevOutScript,
-      this.redeemScript,
-      this.witnessScript,
-      this.pubkeys,
-      this.signatures,
-      this.witness,
-      this.signType,
-      this.prevOutType,
-      this.redeemScriptType,
-      this.witnessScriptType,
-      this.maxSignatures
+    this.hash,
+    this.index,
+    this.script,
+    this.sequence,
+    this.value,
+    this.prevOutScript,
+    this.redeemScript,
+    this.witnessScript,
+    this.pubkeys,
+    this.signatures,
+    this.witness,
+    this.signType,
+    this.prevOutType,
+    this.redeemScriptType,
+    this.witnessScriptType,
+    this.maxSignatures
   }) {
-    hasWitness = false; // Default value
-    if (hash != null && !isHash256bit(hash!)) {
-      throw ArgumentError('Invalid input hash');
-    }
-    if (index != null && !isUint(index!, 32)) {
-      throw ArgumentError('Invalid input index');
-    }
-    if (sequence != null && !isUint(sequence!, 32)) {
-      throw ArgumentError('Invalid input sequence');
-    }
-    if (value != null && !isShatoshi(value!)) {
-      throw ArgumentError('Invalid output value');
-    }
+    if (hash != null && !isHash256bit(hash!)) throw ArgumentError('Invalid input hash');
+    if (index != null && !isUint(index!, 32)) throw ArgumentError('Invalid input index');
+    if (sequence != null && !isUint(sequence!, 32)) throw ArgumentError('Invalid input sequence');
+    if (value != null && !isShatoshi(value!)) throw ArgumentError('Invalid output value');
   }
 
   factory Input.expandInput(Uint8List scriptSig, List<Uint8List?>? witness, [String? type, Uint8List? scriptPubKey]) {

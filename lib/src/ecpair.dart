@@ -10,8 +10,9 @@ class ECPair {
   Uint8List? _d;
   Uint8List? _Q;
   late NetworkType network;
-  late bool compressed;
-  ECPair(Uint8List? _d, Uint8List? _Q, {network, compressed}) {
+  bool compressed = true;
+
+  ECPair(Uint8List? _d, Uint8List? _Q, {NetworkType? network, bool? compressed}) {
     this._d = _d;
     this._Q = _Q;
     this.network = network ?? bitcoin;
@@ -65,12 +66,9 @@ class ECPair {
   }
 
   factory ECPair.fromPrivateKey(Uint8List privateKey, {NetworkType? network, bool? compressed}) {
-    if (privateKey.length != 32) {
-      throw ArgumentError('Expected property privateKey of type Buffer(Length: 32)');
-    }
-    if (!ecc.isPrivate(privateKey)) {
-      throw ArgumentError('Private key not in range [1, n)');
-    }
+    if (privateKey.length != 32) throw ArgumentError('Expected property privateKey of type Buffer(Length: 32)');
+    if (!ecc.isPrivate(privateKey)) throw ArgumentError('Private key not in range [1, n)');
+
     return ECPair(privateKey, null, network: network, compressed: compressed);
   }
 
