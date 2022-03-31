@@ -1,5 +1,5 @@
-import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bitcoin_flutter/src/crypto.dart';
 import 'package:bitcoin_flutter/src/models/networks.dart';

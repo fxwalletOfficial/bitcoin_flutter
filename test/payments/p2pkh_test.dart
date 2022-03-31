@@ -54,7 +54,7 @@ PaymentData _preformPaymentData(dynamic x) {
   final address = x['address'];
   final hash = x['hash'] != null ? Uint8List.fromList(HEX.decode(x['hash'])) : null;
   final input = x['input'] != null ? bscript.fromASM(x['input']) : null;
-  final output = x['output'] != null ? Uint8List.fromList(bscript.fromASM(x['output'])) : x['outputHex'] != null ? Uint8List.fromList(HEX.decode(x['outputHex'])) : null;
+  final output = x['output'] != null ? bscript.fromASM(x['output']) : x['outputHex'] != null ? Uint8List.fromList(HEX.decode(x['outputHex'])) : null;
   final pubkey = x['pubkey'] != null ? Uint8List.fromList(HEX.decode(x['pubkey'])) : null;
   final signature = x['signature'] != null ? Uint8List.fromList(HEX.decode(x['signature'])) : null;
   return new PaymentData(address: address, hash: hash, input: input, output: output, pubkey: pubkey, signature: signature);
