@@ -1,6 +1,7 @@
 class NetworkType {
   String messagePrefix;
   String? bech32;
+  String ? prefix;
   Bip32Type bip32;
   int pubKeyHash;
   int scriptHash;
@@ -9,6 +10,7 @@ class NetworkType {
   NetworkType({
     required this.messagePrefix,
     this.bech32,
+    this.prefix,
     required this.bip32,
     required this.pubKeyHash,
     required this.scriptHash,
@@ -34,6 +36,7 @@ class Bip32Type {
 }
 
 final bitcoin = NetworkType(
+  prefix: 'bitcoincash',
   messagePrefix: '\x18Bitcoin Signed Message:\n',
   bech32: 'bc',
   bip32: Bip32Type(public: 0x0488b21e, private: 0x0488ade4),

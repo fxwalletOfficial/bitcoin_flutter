@@ -20,6 +20,7 @@ const SIGHASH_ALL = 0x01;
 const SIGHASH_NONE = 0x02;
 const SIGHASH_SINGLE = 0x03;
 const SIGHASH_ANYONECANPAY = 0x80;
+const SIGHASH_BITCOINCASHBIP143 = 0x40;
 const ADVANCED_TRANSACTION_MARKER = 0x00;
 const ADVANCED_TRANSACTION_FLAG = 0x01;
 final EMPTY_SCRIPT = Uint8List.fromList([]);
@@ -90,20 +91,8 @@ class Transaction {
       tOffset += slice.length;
     }
 
-    // ignore: unused_element
-    void writeUInt8(i) {
-      bytes.setUint8(tOffset, i);
-      tOffset++;
-    }
-
     void writeUInt32(i) {
       bytes.setUint32(tOffset, i, Endian.little);
-      tOffset += 4;
-    }
-
-    // ignore: unused_element
-    void writeInt32(i) {
-      bytes.setInt32(tOffset, i, Endian.little);
       tOffset += 4;
     }
 
@@ -120,14 +109,6 @@ class Transaction {
     void writeVarSlice(slice) {
       writeVarInt(slice.length);
       writeSlice(slice);
-    }
-
-    // ignore: unused_element
-    void writeVector(vector) {
-      writeVarInt(vector.length);
-      vector.forEach((buf) {
-        writeVarSlice(buf);
-      });
     }
 
     if ((hashType & SIGHASH_ANYONECANPAY) == 0) {
@@ -429,10 +410,7 @@ class Transaction {
     return tx;
   }
 
-  factory Transaction.fromBuffer(
-    Uint8List buffer, {
-    bool noStrict = false,
-  }) {
+  factory Transaction.fromBuffer(Uint8List buffer, {bool noStrict = false}) {
     var offset = 0;
     // Any changes made to the ByteData will also change the buffer, and vice versa.
     // https://api.dart.dev/stable/2.7.1/dart-typed_data/ByteBuffer/asByteData.html
@@ -488,11 +466,10 @@ class Transaction {
 
     final tx = Transaction();
     tx.version = readInt32();
-
     final marker = readUInt8();
     final flag = readUInt8();
-
     var hasWitnesses = false;
+
     if (marker == ADVANCED_TRANSACTION_MARKER && flag == ADVANCED_TRANSACTION_FLAG) {
       hasWitnesses = true;
     } else {
@@ -501,7 +478,12 @@ class Transaction {
 
     final vinLen = readVarInt();
     for (var i = 0; i < vinLen; ++i) {
-      tx.ins.add(Input(hash: readSlice(32), index: readUInt32(), script: readVarSlice(), sequence: readUInt32()));
+      tx.ins.add(Input(
+        hash: readSlice(32),
+        index: readUInt32(),
+        script: readVarSlice(),
+        sequence: readUInt32()
+      ));
     }
 
     final voutLen = readVarInt();
@@ -526,14 +508,8 @@ class Transaction {
     return tx;
   }
 
-  factory Transaction.fromHex(
-    String hex, {
-    bool noStrict = false,
-  }) {
-    return Transaction.fromBuffer(
-      Uint8List.fromList(HEX.decode(hex)),
-      noStrict: noStrict,
-    );
+  factory Transaction.fromHex(String hex, {bool noStrict = false}) {
+    return Transaction.fromBuffer(Uint8List.fromList(HEX.decode(hex)), noStrict: noStrict);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bip32/bip32.dart' as bip32;
+import 'package:bs58check/bs58check.dart' as bs58;
 import 'package:hex/hex.dart';
 
 import 'package:bitcoin_flutter/src/ecpair.dart';
@@ -8,6 +9,7 @@ import 'package:bitcoin_flutter/src/models/networks.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
 import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
 import 'package:bitcoin_flutter/src/utils/magic_hash.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 
 /// Checks if you are awesome. Spoiler: you are.
 class HDWallet {
@@ -48,6 +50,23 @@ class HDWallet {
   }
 
   String? get address => _p2pkh != null ? _p2pkh!.data.address : null;
+
+  String? get bchAddress {
+    if (address == null || network.prefix == null) return null;
+
+    final decode = bs58.decode(address!);
+    final hash = decode.sublist(1);
+    final type = 'P2PKH';
+
+    final prefixData = prefixToUint5Array(network.prefix!) + [0];
+    print(prefixData);
+    final versionByte = getTypeBits(type) + getHashSizeBits(hash);
+    final payloadData = convertBits([versionByte] + hash, 8, 5);
+    final checksumData = prefixData + payloadData + List.generate(8, (index) => 0);
+    final payload = payloadData + checksumToUint5Array(polymod(checksumData));
+
+    return '${network.prefix!}:${base32Encode(payload)}';
+  }
 
   HDWallet({required bip32, required p2pkh, required this.network, this.seed}) {
     _bip32 = bip32;

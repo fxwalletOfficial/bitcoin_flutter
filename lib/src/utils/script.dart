@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' as ecc;
+import 'package:bitcoin_flutter/src/transaction.dart';
+import 'package:defichain_bech32/defichain_bech32.dart';
 import 'package:hex/hex.dart';
 
 import 'package:bitcoin_flutter/src/utils/constants/op.dart';
@@ -202,7 +204,8 @@ Uint8List bip66encode(r, s) {
 Uint8List encodeSignature(Uint8List signature, int hashType) {
   if (!isUint(hashType, 8)) throw ArgumentError('Invalid hasType $hashType');
   if (signature.length != 64) throw ArgumentError('Invalid signature');
-  final hashTypeMod = hashType & ~0x80;
+
+  final hashTypeMod = hashType & ~((hashType & SIGHASH_BITCOINCASHBIP143) > 0 ? 0xc0 : 0x80);
   if (hashTypeMod <= 0 || hashTypeMod >= 4) throw ArgumentError('Invalid hashType $hashType');
 
   final hashTypeBuffer = Uint8List(1);
@@ -225,4 +228,121 @@ Uint8List toDER(Uint8List x) {
   combine.addAll(x);
   if (x[0] & 0x80 != 0) return Uint8List.fromList(combine);
   return x;
+}
+
+prefixToUint5Array(String prefix) {
+  final result = [];
+  for (var i = 0; i < prefix.length; i++) {
+    result.add(prefix[i].codeUnitAt(0) & 31);
+  }
+
+  return result;
+}
+
+getTypeBits(String type) {
+  switch (type) {
+    case 'P2PKH':
+      return 0;
+    case 'P2SH':
+      return 8;
+    default:
+      throw new Error();
+  }
+}
+
+getHashSizeBits(hash) {
+  switch (hash.length * 8) {
+    case 160:
+      return 0;
+    case 192:
+      return 1;
+    case 224:
+      return 2;
+    case 256:
+      return 3;
+    case 320:
+      return 4;
+    case 384:
+      return 5;
+    case 448:
+      return 6;
+    case 512:
+      return 7;
+    default:
+      throw new Error();
+  }
+}
+
+toUint5Array(data) {
+  return convertBits(data, 8, 5);
+}
+
+convertBits(data, int from, int to, {bool strictMode = false}) {
+  double len = data.length * from / to;
+  final length = strictMode ? len.floor() : len.ceil();
+
+  final mask = (1 << to) - 1;
+  final result = List.generate(length, (_) => 0);
+
+  var index = 0;
+  var accumulator = 0;
+  var bits = 0;
+
+  for (var i = 0; i < data.length; i++) {
+    var value = data[i];
+    accumulator = (accumulator << from) | value;
+    bits += from;
+    while (bits >= to) {
+      bits -= to;
+      result[index] = (accumulator >> bits) & mask;
+      index++;
+    }
+  }
+
+  if (!strictMode) {
+    if (bits > 0) {
+      result[index] = (accumulator << (to - bits)) & mask;
+      index++;
+    }
+  } else {
+
+  }
+
+  return result;
+}
+
+base32Encode(data) {
+  var base32 = '';
+  for (var i = 0; i < data.length; i++) {
+    var value = data[i];
+    base32 += charset[value];
+  }
+
+  return base32;
+}
+
+polymod(data) {
+  var GENERATOR = [0x98f2bc8e61, 0x79b76d99e2, 0xf33e5fb3c4, 0xae2eabe2a8, 0x1e4f43e470];
+  var checksum = BigInt.from(1);
+  for (var i = 0; i < data.length; i++) {
+    var value = data[i];
+    var topBits = checksum >> 35;
+    checksum = ((checksum & BigInt.from(0x07ffffffff)) << 5) ^ BigInt.from(value);
+    for (var j = 0; j < GENERATOR.length; j++) {
+      if (((topBits >> j) & BigInt.from(1)).compareTo(BigInt.from(1)) == 0) {
+        checksum = checksum ^ BigInt.from(GENERATOR[j]);
+      }
+    }
+  }
+
+  return checksum ^ BigInt.from(1);
+}
+
+checksumToUint5Array(checksum) {
+  var result = List.generate(8, (_) => 0);
+  for (var i = 0; i < 8; ++i) {
+    result[7 - i] = (checksum & BigInt.from(31)).toInt();
+    checksum = checksum >> 5;
+  }
+  return result;
 }

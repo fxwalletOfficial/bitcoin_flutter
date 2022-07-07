@@ -182,8 +182,7 @@ class TransactionBuilder {
         input.signScript = prevOutScript;
       }
     }
-    var signatureHash = input.hasWitness ?  _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType) : _tx.hashForSignature(vin, input.signScript, hashType);
-
+    var signatureHash = input.hasWitness || (hashType & SIGHASH_BITCOINCASHBIP143) > 0 ?  _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType) : _tx.hashForSignature(vin, input.signScript, hashType);
     // enforce in order signing of public keys
     var signed = false;
     for (var i = 0; i < input.pubkeys!.length; i++) {
