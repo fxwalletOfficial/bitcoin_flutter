@@ -59,7 +59,6 @@ class HDWallet {
     final type = 'P2PKH';
 
     final prefixData = prefixToUint5Array(network.prefix!) + [0];
-    print(prefixData);
     final versionByte = getTypeBits(type) + getHashSizeBits(hash);
     final payloadData = convertBits([versionByte] + hash, 8, 5);
     final checksumData = prefixData + payloadData + List.generate(8, (index) => 0);

@@ -1,11 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:hex/hex.dart';
+import 'package:test/test.dart';
+
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
 import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
-import 'package:test/test.dart';
 import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
-import 'dart:io';
-import 'dart:convert';
-import 'package:hex/hex.dart';
-import 'dart:typed_data';
 
 main() {
   final fixtures = json.decode(new File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8));
@@ -14,24 +16,13 @@ main() {
       test(f['description'] + ' as expected', () {
         final arguments = _preformPaymentData(f['arguments']);
         final p2pkh = new P2PKH(data: arguments);
-        if (arguments.address == null) {
-          expect(p2pkh.data.address, f['expected']['address']);
-        }
-        if (arguments.hash == null) {
-          expect(_toString(p2pkh.data.hash), f['expected']['hash']);
-        }
-        if (arguments.pubkey == null) {
-          expect(_toString(p2pkh.data.pubkey), f['expected']['pubkey']);
-        }
-        if (arguments.input == null) {
-          expect(_toString(p2pkh.data.input), f['expected']['input']);
-        }
-        if (arguments.output == null) {
-          expect(_toString(p2pkh.data.output), f['expected']['output']);
-        }
-        if (arguments.signature == null) {
-          expect(_toString(p2pkh.data.signature), f['expected']['signature']);
-        }
+
+        if (arguments.address == null) expect(p2pkh.data.address, f['expected']['address']);
+        if (arguments.hash == null) expect(_toString(p2pkh.data.hash), f['expected']['hash']);
+        if (arguments.pubkey == null) expect(_toString(p2pkh.data.pubkey), f['expected']['pubkey']);
+        if (arguments.input == null) expect(_toString(p2pkh.data.input), f['expected']['input']);
+        if (arguments.output == null) expect(_toString(p2pkh.data.output), f['expected']['output']);
+        if (arguments.signature == null) expect(_toString(p2pkh.data.signature), f['expected']['signature']);
       });
     });
   });

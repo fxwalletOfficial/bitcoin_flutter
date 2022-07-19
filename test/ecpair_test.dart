@@ -2,13 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:hex/hex.dart';
+import 'package:test/test.dart';
+
 import 'package:bitcoin_flutter/src/ecpair.dart' show ECPair;
 import 'package:bitcoin_flutter/src/models/networks.dart';
-import 'package:test/test.dart';
-import 'package:hex/hex.dart';
-
-// import '../lib/src/ecpair.dart' show ECPair;
-// import '../lib/src/models/networks.dart' as NETWORKS;
 
 final ONE = Uint8List.fromList(HEX.decode('0000000000000000000000000000000000000000000000000000000000000001'));
 
@@ -24,10 +22,10 @@ main() {
         final keyPair = ECPair.fromPrivateKey(ONE, compressed: false);
         expect(keyPair.compressed, false);
       });
-      // test('supports the network option', () {
-      //   final keyPair = ECPair.fromPrivateKey(ONE, network: NETWORKS.testnet, compressed: false);
-      //   expect(keyPair.network, NETWORKS.testnet);
-      // });
+      test('supports the network option', () {
+        final keyPair = ECPair.fromPrivateKey(ONE, network: testnet, compressed: false);
+        expect(keyPair.network, testnet);
+      });
       (fixtures['valid'] as List).forEach((f) {
         test('derives public key for ${f['WIF']}', () {
           final d = Uint8List.fromList(HEX.decode(f['d']));
@@ -69,14 +67,14 @@ main() {
         });
       });
       (fixtures['invalid']['fromWIF'] as List).forEach((f) {
-        // test('throws ' + f['exception'], () {
-        //   var network = _getNetwork(f);
-        //   try {
-        //     expect(ECPair.fromWIF(f['WIF'], network: network), isArgumentError);
-        //   } catch (err) {
-        //     expect((err as ArgumentError).message, f['exception']);
-        //   }
-        // });
+        test('throws ' + f['exception'], () {
+          final network = _getNetwork(f);
+          try {
+            expect(ECPair.fromWIF(f['WIF'], network: network), isArgumentError);
+          } catch (err) {
+            expect((err as ArgumentError).message, f['exception']);
+          }
+        });
       });
     });
     group('toWIF', () {
@@ -131,7 +129,7 @@ main() {
 }
 
 NetworkType _getNetwork(f) {
-  var network;
+  var network = bitcoin;
   if (f['network'] != null) {
     if (f['network'] == 'bitcoin') {
       network = bitcoin;

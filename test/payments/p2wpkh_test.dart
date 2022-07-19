@@ -1,11 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:hex/hex.dart';
+import 'package:test/test.dart';
+
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
 import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
-import 'package:test/test.dart';
 import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
-import 'dart:io';
-import 'dart:convert';
-import 'package:hex/hex.dart';
-import 'dart:typed_data';
 
 main() {
 
@@ -16,27 +18,14 @@ main() {
       test(f['description'] + ' as expected', () {
         final arguments = _preformPaymentData(f['arguments']);
         final p2wpkh = new P2WPKH(data: arguments);
-        if (arguments.address == null) {
-          expect(p2wpkh.data.address, f['expected']['address']);
-        }
-        if (arguments.hash == null) {
-          expect(_toString(p2wpkh.data.hash), f['expected']['hash']);
-        }
-        if (arguments.pubkey == null) {
-          expect(_toString(p2wpkh.data.pubkey), f['expected']['pubkey']);
-        }
-        if (arguments.input == null) {
-          expect(_toString(p2wpkh.data.input), f['expected']['input']);
-        }
-        if (arguments.output == null) {
-          expect(_toString(p2wpkh.data.output), f['expected']['output']);
-        }
-        if (arguments.signature == null) {
-          expect(_toString(p2wpkh.data.signature), f['expected']['signature']);
-        }
-        if (arguments.witness == null) {
-          expect(_toString(p2wpkh.data.witness), f['expected']['witness']);
-        }
+
+        if (arguments.address == null) expect(p2wpkh.data.address, f['expected']['address']);
+        if (arguments.hash == null) expect(_toString(p2wpkh.data.hash), f['expected']['hash']);
+        if (arguments.pubkey == null) expect(_toString(p2wpkh.data.pubkey), f['expected']['pubkey']);
+        if (arguments.input == null) expect(_toString(p2wpkh.data.input), f['expected']['input']);
+        if (arguments.output == null) expect(_toString(p2wpkh.data.output), f['expected']['output']);
+        if (arguments.signature == null) expect(_toString(p2wpkh.data.signature), f['expected']['signature']);
+        if (arguments.witness == null) expect(_toString(p2wpkh.data.witness), f['expected']['witness']);
       });
     });
   });
@@ -50,7 +39,6 @@ main() {
         } catch(err) {
           expect((err as ArgumentError).message, f['exception']);
         }
-
       });
     });
   });

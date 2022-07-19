@@ -50,21 +50,13 @@ main() {
     test('can generate a Litecoin address', () {
       final keyPair = ECPair.makeRandom(network: litecoin, rng: rng);
       final wif = keyPair.toWIF();
-      final address = new P2PKH(
-              data: new PaymentData(pubkey: keyPair.publicKey),
-              network: litecoin)
-          .data
-          .address;
+      final address = new P2PKH(data: new PaymentData(pubkey: keyPair.publicKey), network: litecoin).data.address;
       expect(address, 'LZJSxZbjqJ2XVEquqfqHg1RQTDdfST5PTn');
       expect(wif, 'T7A4PUSgTDHecBxW1ZiYFrDNRih2o7M8Gf9xpoCgudPF9gDiNvuS');
     });
     test('can generate a SegWit address', () {
-      final keyPair = ECPair.fromWIF(
-          'KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn');
-      final address =
-          new P2WPKH(data: new PaymentData(pubkey: keyPair.publicKey))
-              .data
-              .address;
+      final keyPair = ECPair.fromWIF('KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn');
+      final address = new P2WPKH(data: new PaymentData(pubkey: keyPair.publicKey)).data.address;
       expect(address, 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
     });
     test('can generate a SegWit testnet address', () {

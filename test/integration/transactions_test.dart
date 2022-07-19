@@ -41,19 +41,5 @@ main() {
       // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
       expect(txb.build().toHex(), '01000000024c94e48a870b85f41228d33cf25213dfcc8dd796e7211ed6b1f9a014809dbbb5060000006a473044022041450c258ce7cac7da97316bf2ea1ce66d88967c4df94f3e91f4c2a30f5d08cb02203674d516e6bb2b0afd084c3551614bd9cec3c2945231245e891b145f2d6951f0012103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baacffffffff3077d9de049574c3af9bc9c09a7c9db80f2d94caaf63988c9166249b955e867d000000006b483045022100aeb5f1332c79c446d3f906e4499b2e678500580a3f90329edf1ba502eec9402e022072c8b863f8c8d6c26f4c691ac9a6610aa4200edc697306648ee844cfbc089d7a012103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a289ffffffff0220bf0200000000001976a9147dd65592d0ab2fe0d0257d571abf032cd9db93dc88ac10980200000000001976a914c42e7ef92fdb603af844d064faad95db9bcdfd3d88ac00000000');
     });
-
-    test('can create (and broadcast via 3PBP) a Transaction, w/ a P2WPKH input', () {
-      final alice = ECPair.fromWIF('cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am', network: testnet);
-      final p2wpkh = new P2WPKH(data: new PaymentData(pubkey: alice.publicKey), network: testnet).data;
-      final txb = new TransactionBuilder(network: testnet);
-      txb.setVersion(1);
-      txb.addInput('53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b', 0, null, p2wpkh.output); // Alice's previous transaction output, has 200000 satoshis
-      txb.addOutput('tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', 1000000);
-      txb.addOutput('tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap', 8995000);
-
-      txb.sign(vin: 0, keyPair: alice, witnessValue: 10000000);
-      // // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
-      expect(txb.build().toHex(), '010000000001015beda251af570014b7748c0adc5975b808e7b72a491353e1422d04f5266667530000000000ffffffff0240420f0000000000160014c5e1b9dad4c1dd0920ec3671b84d649877636f2fb8408900000000001600149d5e94ada1d095f60b701560f412d08a007d11590247304402203c4670ff81d352924af311552e0379861268bebb2222eeb0e66b3cdd1d4345b60220585b57982d958208cdd52f4ead4ecb86cfa9ff7740c2f6933e77135f1cc4c58f012102f9f43a191c6031a5ffae27c5f9911218e78857923284ac1154abc2cc008544b200000000');
-    });
   });
 }

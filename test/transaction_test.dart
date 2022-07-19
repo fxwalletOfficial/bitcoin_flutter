@@ -1,10 +1,12 @@
-import 'package:test/test.dart';
-import 'dart:io';
 import 'dart:convert';
-import 'package:hex/hex.dart';
+import 'dart:io';
 import 'dart:typed_data';
-import '../lib/src/utils/script.dart' as bscript;
-import '../lib/src/transaction.dart';
+
+import 'package:hex/hex.dart';
+import 'package:test/test.dart';
+
+import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
+import 'package:bitcoin_flutter/src/transaction.dart';
 
 main() {
   final fixtures = json.decode(new File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8));
@@ -49,8 +51,7 @@ main() {
     group('weight/virtualSize', () {
       test('computes virtual size', () {
         valids.forEach((f) {
-          final txHex =
-              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final transaction = Transaction.fromHex(txHex);
           expect(transaction.virtualSize(), f['virtualSize']);
         });
@@ -60,8 +61,7 @@ main() {
     group('addInput', () {
       var prevTxHash;
       setUp(() {
-        prevTxHash = HEX.decode(
-            'ffffffff00ffff000000000000000000000000000000000000000000101010ff');
+        prevTxHash = HEX.decode('ffffffff00ffff000000000000000000000000000000000000000000101010ff');
       });
       test('returns an index', () {
         final tx = new Transaction();
@@ -96,8 +96,7 @@ main() {
     group('getHash/getId', () {
       verify(f) {
         test('should return the id for ${f['id']} (${f['description']})', () {
-          final txHex =
-              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final tx = Transaction.fromHex(txHex);
           expect(HEX.encode(tx.getHash()), f['hash']);
           expect(tx.getId(), f['id']);
@@ -109,9 +108,7 @@ main() {
 
     group('isCoinbase', () {
       verify(f) {
-        test(
-            'should return ${f['coinbase']} for ${f['id']} (${f['description']})',
-            () {
+        test('should return ${f['coinbase']} for ${f['id']} (${f['description']})', () {
           final tx = Transaction.fromHex(f['hex']);
           expect(tx.isCoinbase(), f['coinbase']);
         });
@@ -122,14 +119,10 @@ main() {
 
     group('hashForSignature', () {
       (fixtures['hashForSignature'] as List<dynamic>).forEach((f) {
-        test(
-            'should return ${f['hash']} for ${f['description'] != null ? 'case "' + f['description'] + '"' : f['script']}',
-            () {
+        test('should return ${f['hash']} for ${f['description'] != null ? 'case "' + f['description'] + '"' : f['script']}', () {
           final tx = Transaction.fromHex(f['txHex']);
           final script = bscript.fromASM(f['script']);
-          expect(
-              HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])),
-              f['hash']);
+          expect(HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])), f['hash']);
         });
       });
     });
@@ -150,7 +143,7 @@ Transaction fromRaw(raw, [isWitness]) {
   tx.version = raw['version'];
   tx.locktime = raw['locktime'];
 
-  (raw['ins'] as List<dynamic>).asMap().forEach((indx, txIn) {
+  (raw['ins'] as List<dynamic>).asMap().forEach((i, txIn) {
     final txHash = Uint8List.fromList(HEX.decode(txIn['hash']));
     var scriptSig;
 
@@ -161,12 +154,12 @@ Transaction fromRaw(raw, [isWitness]) {
     }
     tx.addInput(txHash, txIn['index'], txIn['sequence'], scriptSig);
 
-    if (isWitness) {
-      var witness = (txIn['witness'] as List<dynamic>)
-          .map((e) => HEX.decode(e.toString()) as Uint8List)
-          .toList();
-      tx.setWitness(indx, witness);
-    }
+    if (!isWitness) return;
+
+    final witness = (txIn['witness'] as List<dynamic>)
+      .map((e) => HEX.decode(e.toString()) as Uint8List)
+      .toList();
+    tx.setWitness(i, witness);
   });
 
   (raw['outs'] as List<dynamic>).forEach((txOut) {
