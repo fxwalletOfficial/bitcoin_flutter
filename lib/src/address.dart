@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:bitcoin_flutter/src/utils/script.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:pointycastle/export.dart';
 
@@ -71,5 +72,11 @@ class Address {
 
     final addr = result.skip(result.length - 20).toList();
     return Base58CheckCodec.bitcoin().encode(Base58CheckPayload(0x41, addr));
+  }
+
+  static String bchToLegacy(String addr) {
+    final payload = base32Decode(addr.split(':')[1]);
+    final hash = convertBits(payload.sublist(0, 34), 5, 8, strictMode: true);
+    return bs58check.encode(Uint8List.fromList(hash));
   }
 }

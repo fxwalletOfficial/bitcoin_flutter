@@ -277,7 +277,7 @@ toUint5Array(data) {
   return convertBits(data, 8, 5);
 }
 
-convertBits(data, int from, int to, {bool strictMode = false}) {
+List<int> convertBits(data, int from, int to, {bool strictMode = false}) {
   double len = data.length * from / to;
   final length = strictMode ? len.floor() : len.ceil();
 
@@ -319,6 +319,15 @@ base32Encode(data) {
   }
 
   return base32;
+}
+
+List base32Decode(String data) {
+  List hash = [];
+  for (var i = 0; i < data.length; i++) {
+    hash.add(charset.indexOf(data[i]));
+  }
+
+  return hash;
 }
 
 polymod(data) {
