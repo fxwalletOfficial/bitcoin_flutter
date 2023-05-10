@@ -2,10 +2,13 @@ import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' show isPoint;
 import 'package:bs58check/bs58check.dart' as bs58check;
+import 'package:defichain_bech32/defichain_bech32.dart';
 
 import 'package:bitcoin_flutter/src/crypto.dart';
 import 'package:bitcoin_flutter/src/models/networks.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
+import 'package:bitcoin_flutter/src/utils/blake2b.dart';
+import 'package:bitcoin_flutter/src/utils/common.dart';
 import 'package:bitcoin_flutter/src/utils/constants/op.dart';
 import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
 
@@ -79,6 +82,11 @@ class P2PKH {
     }
     data.hash = payload.sublist(1);
     if (data.hash!.length != 20) throw ArgumentError('Invalid address');
+  }
+
+  String get addressInBlake2b {
+    final digest = convertBit(Blake2b.digest(data.pubkey!, 20));
+    return bech32.encode(Bech32(network.bech32 ?? 'bc', digest));
   }
 }
 
