@@ -2,15 +2,19 @@ import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' show isPoint;
 import 'package:bs58check/bs58check.dart' as bs58check;
-import 'package:defichain_bech32/defichain_bech32.dart';
+import 'package:hex/hex.dart';
+import 'package:pointycastle/export.dart';
 
+import 'package:bitcoin_flutter/src/bech32/bech32.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 import 'package:bitcoin_flutter/src/crypto.dart';
 import 'package:bitcoin_flutter/src/models/networks.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
 import 'package:bitcoin_flutter/src/utils/blake2b.dart';
 import 'package:bitcoin_flutter/src/utils/common.dart';
 import 'package:bitcoin_flutter/src/utils/constants/op.dart';
-import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
+
+final _secp256k1 = ECCurve_secp256k1();
 
 class P2PKH {
   PaymentData data;
@@ -37,13 +41,13 @@ class P2PKH {
       _getDataFromHash();
       _getDataFromChunk();
     } else if (data.input != null) {
-      var _chunks = bscript.decompile(data.input)!;
+      var _chunks = decompile(data.input)!;
       _getDataFromChunk(_chunks);
+
       if (_chunks.length != 2) throw ArgumentError('Input is invalid');
-      if (!bscript.isCanonicalScriptSignature(_chunks[0])) {
-        throw ArgumentError('Input has invalid signature');
-      }
+      if (!isCanonicalScriptSignature(_chunks[0])) throw ArgumentError('Input has invalid signature');
       if (!isPoint(_chunks[1])) throw ArgumentError('Input has invalid pubkey');
+
       data.witness = [];
     } else {
       throw ArgumentError('Not enough data');
@@ -60,7 +64,7 @@ class P2PKH {
       data.signature = (_chunks[0] is int) ? Uint8List.fromList([_chunks[0]]) : _chunks[0];
     }
     if (data.input == null && data.pubkey != null && data.signature != null) {
-      data.input = bscript.compile([data.signature, data.pubkey]);
+      data.input = compile([data.signature, data.pubkey]);
     }
   }
 
@@ -71,7 +75,7 @@ class P2PKH {
       payload.setRange(1, payload.length, data.hash!);
       data.address = bs58check.encode(payload);
     }
-    data.output ??= bscript.compile([OPS['OP_DUP'], OPS['OP_HASH160'], data.hash, OPS['OP_EQUALVERIFY'], OPS['OP_CHECKSIG']]);
+    data.output ??= compile([OPS['OP_DUP'], OPS['OP_HASH160'], data.hash, OPS['OP_EQUALVERIFY'], OPS['OP_CHECKSIG']]);
   }
 
   void _getDataFromAddress(String address) {
@@ -87,6 +91,18 @@ class P2PKH {
   String get addressInBlake2b {
     final digest = convertBit(Blake2b.digest(data.pubkey!, 20));
     return bech32.encode(Bech32(network.bech32 ?? 'bc', digest));
+  }
+
+  String get tapRootAddress {
+    if (data.pubkey == null) return '';
+
+    final pub = _secp256k1.curve.decodePoint(data.pubkey!)!;
+
+    final info = taprootConstruct(pubKey: pub);
+    final words = convertBits(info, 8, 5);
+    final addr = bech32.encode(Bech32(network.bech32!, [1] + words), encoding: 'bech32m');
+
+    return addr;
   }
 }
 

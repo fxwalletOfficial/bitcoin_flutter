@@ -1,13 +1,18 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' as ecc;
+import 'package:bitcoin_flutter/src/bech32/bech32.dart';
 import 'package:bitcoin_flutter/src/transaction.dart';
-import 'package:defichain_bech32/defichain_bech32.dart';
 import 'package:hex/hex.dart';
+import 'package:crypto/crypto.dart';
 
 import 'package:bitcoin_flutter/src/utils/constants/op.dart';
 import 'package:bitcoin_flutter/src/utils/push_data.dart' as pushdata;
 import 'package:bitcoin_flutter/src/utils/check_types.dart';
+import 'package:pointycastle/export.dart';
+
+final _secp256k1 = ECCurve_secp256k1();
 
 Map<int, String> REVERSE_OPS = OPS.map((String string, int number) => MapEntry(number, string));
 final OP_INT_BASE = OPS['OP_RESERVED'];
@@ -354,4 +359,30 @@ checksumToUint5Array(checksum) {
     checksum = checksum >> 5;
   }
   return result;
+}
+
+List<int> taggedHash(String tag, List<int> msg) {
+  var tagHash = sha256.convert(utf8.encode(tag)).bytes;
+  return sha256.convert(tagHash + tagHash + msg).bytes;
+}
+
+List<int> bigToBytes(BigInt integer) {
+  var hexNum = integer.toRadixString(16);
+  if (hexNum.length % 2 == 1) hexNum = '0' + hexNum;
+
+  return HEX.decode(hexNum);
+}
+
+
+/// If the spending conditions do not require a script path, the output key should commit to an unspendable script path
+/// instead of having no script path. This can be achieved by computing the output key point as
+/// Q = P + int(hashTapTweak(bytes(P)))G.
+/// https://en.bitcoin.it/wiki/BIP_0341#cite_note-22
+List<int> taprootConstruct({required ECPoint pubKey, List<int>? merkleRoot}) {
+  if (merkleRoot == null) merkleRoot = [];
+
+  final tweak = taggedHash('TapTweak', bigToBytes(pubKey.x!.toBigInteger()!));
+  final mul = _secp256k1.G * BigInt.parse(HEX.encode(tweak), radix: 16);
+  final result = mul! + pubKey;
+  return bigToBytes(result!.x!.toBigInteger()!);
 }

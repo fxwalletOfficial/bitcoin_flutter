@@ -69,6 +69,8 @@ class HDWallet {
 
   String? get addressInBlake2b => _p2pkh != null ? _p2pkh!.addressInBlake2b : null;
 
+  String? get tapRootAddress => _p2pkh != null ? _p2pkh!.tapRootAddress : null;
+
   HDWallet({required bip32, required p2pkh, required this.network, this.seed}) {
     _bip32 = bip32;
     _p2pkh = p2pkh;

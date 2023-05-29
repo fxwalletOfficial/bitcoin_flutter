@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' show isPoint;
-import 'package:defichain_bech32/defichain_bech32.dart';
 
+import 'package:bitcoin_flutter/src/bech32/exceptions.dart';
+import 'package:bitcoin_flutter/src/bech32/segwit.dart';
 import 'package:bitcoin_flutter/src/crypto.dart';
 import 'package:bitcoin_flutter/src/models/networks.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
@@ -71,9 +72,8 @@ class P2WPKH {
   void _getDataFromAddress(String address) {
     try {
       var _address = segwit.decode(SegwitInput(network.bech32!, address));
-      if (network.bech32 != _address.hrp) {
-        throw ArgumentError('Invalid prefix or Network mismatch');
-      }
+      if (network.bech32 != _address.hrp) throw ArgumentError('Invalid prefix or Network mismatch');
+
       // Only support version 0 now;
       if (_address.version != 0) throw ArgumentError('Invalid address version');
 

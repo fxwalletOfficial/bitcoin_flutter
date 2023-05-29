@@ -1,6 +1,7 @@
 library bitcoin_flutter;
 
 export 'package:bitcoin_flutter/src/address.dart';
+export 'package:bitcoin_flutter/src/bech32/bech32.dart';
 export 'package:bitcoin_flutter/src/bitcoin_flutter_base.dart';
 export 'package:bitcoin_flutter/src/ecpair.dart';
 export 'package:bitcoin_flutter/src/models/networks.dart';

@@ -1,9 +1,6 @@
 import 'package:test/test.dart';
 
 import 'package:bitcoin_flutter/src/ecpair.dart';
-import 'package:bitcoin_flutter/src/models/networks.dart';
-import 'package:bitcoin_flutter/src/payments/index.dart';
-import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
 import 'package:bitcoin_flutter/src/transaction_builder.dart';
 
 main() {
