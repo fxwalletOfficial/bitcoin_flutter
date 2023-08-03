@@ -152,7 +152,7 @@ Transaction fromRaw(raw, [isWitness]) {
     } else if (txIn['script'] != null && txIn['script'] != '') {
       scriptSig = bscript.fromASM(txIn['script']);
     }
-    tx.addInput(txHash, txIn['index'], txIn['sequence'], scriptSig);
+    tx.addInput(txHash, txIn['index'], sequence: txIn['sequence'], scriptSig: scriptSig);
 
     if (!isWitness) return;
 

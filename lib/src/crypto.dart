@@ -16,3 +16,7 @@ Uint8List hash256(Uint8List buffer) {
   var _tmp = SHA256Digest().process(buffer);
   return SHA256Digest().process(_tmp);
 }
+
+Uint8List sha256(Uint8List buffer) {
+  return SHA256Digest().process(buffer);
+}

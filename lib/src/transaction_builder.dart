@@ -333,7 +333,7 @@ class TransactionBuilder {
       input.prevOutScript = options.prevOutScript;
       input.prevOutType = classifyOutput(options.prevOutScript!);
     }
-    var vin = _tx.addInput(hash, vout, options.sequence, options.script);
+    var vin = _tx.addInput(hash, vout, sequence: options.sequence, scriptSig: options.script);
     _inputs!.add(input);
     _prevTxSet[prevTxOut] = true;
     return vin;

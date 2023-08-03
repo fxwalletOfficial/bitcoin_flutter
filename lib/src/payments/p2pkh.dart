@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' show isPoint;
 import 'package:bs58check/bs58check.dart' as bs58check;
-import 'package:hex/hex.dart';
 import 'package:pointycastle/export.dart';
 
 import 'package:bitcoin_flutter/src/bech32/bech32.dart';

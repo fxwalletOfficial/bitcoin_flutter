@@ -12,7 +12,7 @@ import 'package:bitcoin_flutter/src/utils/push_data.dart' as pushdata;
 import 'package:bitcoin_flutter/src/utils/check_types.dart';
 import 'package:pointycastle/export.dart';
 
-final _secp256k1 = ECCurve_secp256k1();
+final secp256k1 = ECCurve_secp256k1();
 
 Map<int, String> REVERSE_OPS = OPS.map((String string, int number) => MapEntry(number, string));
 final OP_INT_BASE = OPS['OP_RESERVED'];
@@ -373,6 +373,13 @@ List<int> bigToBytes(BigInt integer) {
   return HEX.decode(hexNum);
 }
 
+BigInt bigFromBytes(List<int> bytes) {
+  return BigInt.parse(HEX.encode(bytes), radix: 16);
+}
+
+BigInt getE(ECPoint P, List<int> rX, List<int> m) {
+  return bigFromBytes(taggedHash('BIP0340/challenge', rX + bigToBytes(P.x!.toBigInteger()!) + m)) % secp256k1.n;
+}
 
 /// If the spending conditions do not require a script path, the output key should commit to an unspendable script path
 /// instead of having no script path. This can be achieved by computing the output key point as
@@ -382,7 +389,11 @@ List<int> taprootConstruct({required ECPoint pubKey, List<int>? merkleRoot}) {
   if (merkleRoot == null) merkleRoot = [];
 
   final tweak = taggedHash('TapTweak', bigToBytes(pubKey.x!.toBigInteger()!));
-  final mul = _secp256k1.G * BigInt.parse(HEX.encode(tweak), radix: 16);
+  final mul = secp256k1.G * BigInt.parse(HEX.encode(tweak), radix: 16);
   final result = mul! + pubKey;
   return bigToBytes(result!.x!.toBigInteger()!);
+}
+
+Uint8List toXOnly(Uint8List pubkey) {
+  return pubkey.length == 32 ? pubkey : pubkey.sublist(1, 33);
 }

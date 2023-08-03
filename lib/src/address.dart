@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
-import 'package:bitcoin_flutter/src/utils/script.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:pointycastle/export.dart';
 
 import 'package:bitcoin_flutter/src/base58.dart';
+import 'package:bitcoin_flutter/src/bech32/bech32.dart';
 import 'package:bitcoin_flutter/src/bip32/bip32.dart';
 import 'package:bitcoin_flutter/src/models/networks.dart';
 import 'package:bitcoin_flutter/src/payments/index.dart' show PaymentData;
@@ -12,8 +12,8 @@ import 'package:bitcoin_flutter/src/payments/p2pkh.dart';
 import 'package:bitcoin_flutter/src/payments/p2sh.dart';
 import 'package:bitcoin_flutter/src/payments/p2wpkh.dart';
 import 'package:bitcoin_flutter/src/utils/constants/constants.dart';
-
-final _domainParams = ECCurve_secp256k1();
+import 'package:bitcoin_flutter/src/utils/constants/op.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 
 class Address {
   static bool validateAddress(String address, [NetworkType? nw]) {
@@ -26,28 +26,38 @@ class Address {
   }
 
   static Uint8List? addressToOutputScript(String address, [NetworkType? nw]) {
-    var network = nw ?? bitcoin;
-    var decodeBase58;
-    var decodeBech32;
+    final network = nw ?? bitcoin;
+
     try {
-      decodeBase58 = bs58check.decode(address);
-    } catch (err) {
-      // Base58check decode fail
-    }
-    if (decodeBase58 != null) {
+      final decodeBase58 = bs58check.decode(address);
       if (decodeBase58[0] == network.pubKeyHash) return P2PKH(data: PaymentData(address: address), network: network).data.output;
       if (decodeBase58[0] == network.scriptHash) return P2SH(data: PaymentData(address: address), network: network).data.output;
 
       throw ArgumentError('Invalid version or Network mismatch');
-    } else {
-      if (decodeBech32 != null) {
-        if (network.bech32 != decodeBech32.hrp) throw ArgumentError('Invalid prefix or Network mismatch');
-        if (decodeBech32.version != 0) throw ArgumentError('Invalid address version');
+    } catch (e) {
 
-        var p2wpkh = P2WPKH(data: PaymentData(address: address), network: network);
-        return p2wpkh.data.output;
-      }
     }
+
+    try {
+      final decodeBech32 = bech32.decode(address);
+      if (network.bech32 != decodeBech32.hrp) throw ArgumentError('Invalid prefix or Network mismatch');
+
+      final p2wpkh = P2WPKH(data: PaymentData(address: address), network: network);
+      return p2wpkh.data.output;
+    } catch (e) {
+
+    }
+
+    try {
+      final decodeBech32m = bech32.decode(address, encoding: 'bech32m');
+      if (network.bech32 != decodeBech32m.hrp) throw ArgumentError('Invalid prefix or Network mismatch');
+
+      final hash = Uint8List.fromList(convertBits(decodeBech32m.data.sublist(1), 5, 8, strictMode: true));
+      return compile([OPS['OP_1'], hash]);
+    } catch (e) {
+
+    }
+
     throw ArgumentError('$address has no matching Script');
   }
 
@@ -58,9 +68,9 @@ class Address {
     final root = ExtendedPrivateKey.master(seed, prefix);
     final r = root.forPath(path);
 
-    final q = _domainParams.G * (r as ExtendedPrivateKey).key;
+    final q = secp256k1.G * (r as ExtendedPrivateKey).key;
 
-    final publicParams = ECPublicKey(q, _domainParams);
+    final publicParams = ECPublicKey(q, secp256k1);
     final pk = publicParams.Q!.getEncoded(false);
 
     final input = Uint8List.fromList(pk.skip(1).toList());

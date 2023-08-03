@@ -73,7 +73,7 @@ class Bech32Decoder extends Converter<String, Bech32> with Bech32Validations {
     var checksumBytes = checksum.split('').map((c) => charset.indexOf(c)).toList();
 
     if (hasOutOfBoundsChars(checksumBytes)) throw OutOfBoundChars(checksum[checksumBytes.indexOf(-1)]);
-    if (isInvalidChecksum(hrp, dataBytes, checksumBytes)) throw InvalidChecksum();
+    if (isInvalidChecksum(hrp, dataBytes, checksumBytes, encoding: encoding)) throw InvalidChecksum();
 
     return Bech32(hrp, dataBytes);
   }
@@ -97,8 +97,8 @@ class Bech32Validations {
     return separatorPosition == 0;
   }
 
-  bool isInvalidChecksum(String hrp, List<int> data, List<int> checksum) {
-    return !_verifyChecksum(hrp, data + checksum);
+  bool isInvalidChecksum(String hrp, List<int> data, List<int> checksum, {String encoding = 'bech32'}) {
+    return !_verifyChecksum(hrp, data + checksum, encoding: encoding);
   }
 
   bool isMixedCase(String input) {
@@ -154,8 +154,8 @@ List<int> _hrpExpand(String hrp) {
   return result;
 }
 
-bool _verifyChecksum(String hrp, List<int> dataIncludingChecksum) {
-  return _polymod(_hrpExpand(hrp) + dataIncludingChecksum) == 1;
+bool _verifyChecksum(String hrp, List<int> dataIncludingChecksum, {String encoding = 'bech32'}) {
+  return _polymod(_hrpExpand(hrp) + dataIncludingChecksum) == (encoding == 'bech32' ? 1 : 0x2bc830a3);
 }
 
 List<int> _createChecksum(String hrp, List<int> data, {String encoding = 'bech32'}) {

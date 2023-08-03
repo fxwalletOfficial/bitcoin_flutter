@@ -3,8 +3,10 @@ import 'dart:typed_data';
 
 import 'package:bip32/src/utils/ecurve.dart' as ecc;
 import 'package:bip32/src/utils/wif.dart' as wif;
+import 'package:hex/hex.dart';
 
 import 'package:bitcoin_flutter/src/models/networks.dart';
+import 'package:bitcoin_flutter/src/utils/script.dart';
 
 class ECPair {
   Uint8List? _d;
@@ -33,6 +35,55 @@ class ECPair {
 
   Uint8List sign(Uint8List hash) {
     return ecc.sign(hash, privateKey!);
+  }
+
+  ECPair ToTweak() {
+    if (publicKey == null) throw Exception('Public key missed');
+
+    final key = taggedHash('TapTweak', toXOnly(publicKey!));
+    final hasOddY = publicKey![0] == 3 || (publicKey![0] == 4 && (publicKey![64] & 1) == 1);
+    final private = hasOddY ? _privateNegate() : privateKey;
+
+    final sum = bigFromBytes(private!) + bigFromBytes(key);
+    final r = sum % secp256k1.n;
+    final mod = r >= BigInt.zero ? r : secp256k1.n + r;
+    final result = Uint8List.fromList(bigToBytes(mod));
+
+    return ECPair.fromPrivateKey(result, network: network, compressed: compressed);
+  }
+
+  Uint8List _privateNegate() {
+    if (privateKey == null) throw Exception('Private key missing.');
+
+    final bigNumber = -bigFromBytes(privateKey!);
+    final r = bigNumber % secp256k1.n;
+    final mod = r >= BigInt.zero ? r : secp256k1.n + r;
+
+    return Uint8List.fromList(bigToBytes(mod));
+  }
+
+  Uint8List signSchnorr({required Uint8List message, String aux = ''}) {
+    final d0 = BigInt.parse(HEX.encode(privateKey!), radix: 16);
+    if ((d0 < BigInt.one) || (d0 > (secp256k1.n - BigInt.one))) throw Exception('Private key is invalid.');
+
+    final bAux = HEX.decode(aux.padLeft(64, '0'));
+    if (bAux.length != 32) throw Exception('Aux is invalid.');
+
+    final P = (secp256k1.G * d0)!;
+    final d = (P.y!.toBigInteger()! % BigInt.two == BigInt.zero) ? d0 : secp256k1.n - d0;
+    final t = d ^ bigFromBytes(taggedHash('BIP0340/aux', bAux));
+    final k0 = bigFromBytes(taggedHash('BIP0340/nonce', bigToBytes(t) + bigToBytes(P.x!.toBigInteger()!) + message)) % secp256k1.n;
+
+    if (k0.sign == 0) throw Exception('Message is invalid.');
+
+    final R = (secp256k1.G * k0)!;
+
+    final k = (R.y!.toBigInteger()! % BigInt.two == BigInt.zero) ? k0 : secp256k1.n - k0;
+    final rX = bigToBytes(R.x!.toBigInteger()!);
+    final e = getE(P, rX, message);
+
+    final signature = rX + bigToBytes((k + e * d) % secp256k1.n);
+    return Uint8List.fromList(signature);
   }
 
   bool verify(Uint8List hash, Uint8List signature) {

@@ -91,7 +91,7 @@ main() {
           f['inputs'] as List<dynamic>
             ..forEach((input) {
               final txHash2 = Uint8List.fromList(HEX.decode(input['txId']).reversed.toList());
-              tx.addInput(txHash2, input['vout'], null, fromASM(input['scriptSig']));
+              tx.addInput(txHash2, input['vout'], scriptSig: fromASM(input['scriptSig']));
             });
           f['outputs'] as List<dynamic>
             ..forEach((output) {
