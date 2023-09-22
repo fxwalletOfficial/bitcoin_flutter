@@ -49,7 +49,9 @@ class HDWallet {
     }
   }
 
-  String? get address => _p2pkh != null ? _p2pkh!.data.address : null;
+  String? get address => _p2pkh?.data.address;
+
+  String? get bech32Address => _p2pkh?.bech32Address;
 
   String? get bchAddress {
     if (address == null || network.prefix == null) return null;

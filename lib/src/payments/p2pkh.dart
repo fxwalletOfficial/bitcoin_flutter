@@ -103,6 +103,11 @@ class P2PKH {
 
     return addr;
   }
+
+  String get bech32Address {
+    final digest = convertBits(data.hash, 8, 5);
+    return bech32.encode(Bech32(network.bech32 ?? 'bc', digest));
+  }
 }
 
 bool isValidOutput(Uint8List data) {
