@@ -43,7 +43,7 @@ class Transaction {
   List<OutputBase> outs = [];
   Transaction();
 
-  int addInput(Uint8List hash, int? index, {int? sequence, Uint8List? scriptSig, int? value, Uint8List? prevoutScript}) {
+  int addInput(Uint8List hash, int? index, {int? sequence, Uint8List? scriptSig, int? value, Uint8List? prevoutScript, Uint8List? witnessUtxo, Uint8List? tapInternalKey, List<TapLeafScript>? tapLeafScript}) {
     ins.add(Input(
       hash: hash,
       index: index,
@@ -51,7 +51,10 @@ class Transaction {
       script: scriptSig ?? EMPTY_SCRIPT,
       prevOutScript: prevoutScript ?? EMPTY_SCRIPT,
       witness: EMPTY_WITNESS,
-      value: value
+      value: value,
+      witnessUtxo: witnessUtxo,
+      tapInternalKey: tapInternalKey,
+      tapLeafScript: tapLeafScript
     ));
     return ins.length - 1;
   }
@@ -93,7 +96,6 @@ class Transaction {
 
   void setLocktime(int value) => locktime = value;
 
-
   void signSchnorr({required int vin, required ECPair keyPair, int? hashType}) {
     if (vin >= ins.length) throw ArgumentError('No input at index: $vin');
 
@@ -101,12 +103,29 @@ class Transaction {
     final input = ins[vin];
 
     final prevouts = ins.where((e) => e.prevOutScript != null && e.value != null);
-    final scripts = prevouts.map((e) => e.prevOutScript!).toList();
+    final scripts = prevouts.map((e) {
+      if (e.witnessUtxo != null) return e.witnessUtxo!;
+      return e.prevOutScript!;
+    }).toList();
     final values = prevouts.map((e) => e.value!).toList();
+    final leafHash = tapLeafHash((input.tapLeafScript?.isNotEmpty ?? false) ? input.tapLeafScript!.first : null);
 
-    final hashesForSig = hashForWitnessV1(vin, scripts, values, hashType, null, null);
+    final hashesForSig = hashForWitnessV1(vin, scripts, values, hashType, leafHash, null);
     final sig = keyPair.signSchnorr(message: hashesForSig);
-    input.update(witness: [_serializeTaprootSignature(sig, hashType)]);
+
+    final witness = [_serializeTaprootSignature(sig, hashType)];
+    if (input.tapLeafScript?.isNotEmpty ?? false) {
+      final item = input.tapLeafScript!.first;
+      witness.addAll([item.script, item.controlBlock]);
+    }
+
+    input.update(witness: witness);
+  }
+
+  Uint8List? tapLeafHash(TapLeafScript? tapLeaf) {
+    if (tapLeaf == null) return null;
+
+    return Uint8List.fromList(bscript.taggedHash('TapLeaf', [tapLeaf.version] + [tapLeaf.script.length] + tapLeaf.script));
   }
 
   Uint8List _serializeTaprootSignature(Uint8List sig, int? type) {
@@ -601,6 +620,9 @@ class Input {
   List<Uint8List?>? witness;
   int? maxSignatures;
   Uint8List? tapKeySig;
+  Uint8List? witnessUtxo;
+  Uint8List? tapInternalKey;
+  List<TapLeafScript>? tapLeafScript;
 
   Input({
     this.hash,
@@ -618,7 +640,10 @@ class Input {
     this.prevOutType,
     this.redeemScriptType,
     this.witnessScriptType,
-    this.maxSignatures
+    this.maxSignatures,
+    this.witnessUtxo,
+    this.tapInternalKey,
+    this.tapLeafScript
   }) {
     if (hash != null && !isHash256bit(hash!)) throw ArgumentError('Invalid input hash');
     if (index != null && !isUint(index!, 32)) throw ArgumentError('Invalid input index');
@@ -801,4 +826,12 @@ bool isCoinbaseHash(Uint8List buffer) {
 int varSliceSize(Uint8List someScript) {
   final length = someScript.length;
   return varuint.encodingLength(length) + length;
+}
+
+class TapLeafScript {
+  final int version;
+  final Uint8List script;
+  final Uint8List controlBlock;
+
+  TapLeafScript({required this.version, required this.script, required this.controlBlock});
 }
