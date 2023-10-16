@@ -363,6 +363,8 @@ checksumToUint5Array(checksum) {
 
 List<int> taggedHash(String tag, List<int> msg) {
   var tagHash = sha256.convert(utf8.encode(tag)).bytes;
+  if (msg.length < 32) msg = List.filled(32 - msg.length, 0) + msg;
+
   return sha256.convert(tagHash + tagHash + msg).bytes;
 }
 
