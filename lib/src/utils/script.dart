@@ -13,6 +13,7 @@ import 'package:bitcoin_flutter/src/utils/check_types.dart';
 import 'package:pointycastle/export.dart';
 
 final secp256k1 = ECCurve_secp256k1();
+final secp256k1P = BigInt.parse('fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f', radix: 16);
 
 Map<int, String> REVERSE_OPS = OPS.map((String string, int number) => MapEntry(number, string));
 final OP_INT_BASE = OPS['OP_RESERVED'];
@@ -391,11 +392,28 @@ List<int> taprootConstruct({required ECPoint pubKey, List<int>? merkleRoot}) {
   if (merkleRoot == null) merkleRoot = [];
 
   final tweak = taggedHash('TapTweak', bigToBytes(pubKey.x!.toBigInteger()!));
+
+  liftX(pubKey.x!.toBigInteger()!);
+  final px = liftX(pubKey.x!.toBigInteger()!);
+
   final mul = secp256k1.G * BigInt.parse(HEX.encode(tweak), radix: 16);
-  final result = mul! + pubKey;
+  final result = px + mul!;
   return bigToBytes(result!.x!.toBigInteger()!);
 }
 
 Uint8List toXOnly(Uint8List pubkey) {
   return pubkey.length == 32 ? pubkey : pubkey.sublist(1, 33);
+}
+
+ECPoint liftX(BigInt px) {
+
+  final c = (px.pow(3) + BigInt.from(7)) % secp256k1P;
+  final y = c.modPow((secp256k1P + BigInt.one) ~/ BigInt.from(4), secp256k1P);
+
+  if (c.compareTo(y.modPow(BigInt.two, secp256k1P)) != 0) throw Exception('c is not equal to y^2');
+
+  var item = secp256k1.curve.createPoint(px, y);
+  if (!item.y!.toBigInteger()!.isEven) item = secp256k1.curve.createPoint(px, secp256k1P - y);
+
+  return item;
 }
