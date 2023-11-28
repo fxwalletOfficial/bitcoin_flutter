@@ -199,7 +199,7 @@ main() {
         try {
           expect(txb.addOutput('2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', 1000), isArgumentError);
         } catch (err) {
-          expect((err as ArgumentError).message, 'Invalid version or Network mismatch');
+          expect((err as ArgumentError).message, '2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9 has no matching Script');
         }
       });
       test('add second output after signed first input with SIGHASH_NONE', () {

@@ -1,0 +1,34 @@
+{
+  "valid": [
+    {
+      "description": "output from address",
+      "arguments": {
+        "address": "3JvL6Ymt8MVWiCNHC7oWU6nLeHNJKLZGLN"
+      }
+    },
+    {
+      "description": "output from input",
+      "arguments": {
+        "input": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+        "redeem": {}
+      }
+    },
+    {
+      "description": "output from redeem",
+      "arguments": {
+        "redeem": {
+          "output": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+          "input": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f",
+          "witness": []
+        }
+      }
+    },
+    {
+      "description": "output from witness",
+      "arguments": {
+        "hash": "ea6d525c0c955d90d3dbd29a81ef8bfb79003727",
+        "witness": ["ea6d525c0c955d90d3dbd29a81ef8bfb79003727"]
+      }
+    }
+  ]
+}
