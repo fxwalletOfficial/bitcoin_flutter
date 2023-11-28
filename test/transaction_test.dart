@@ -7,9 +7,11 @@ import 'package:test/test.dart';
 
 import 'package:bitcoin_flutter/src/utils/script.dart' as bscript;
 import 'package:bitcoin_flutter/src/transaction.dart';
+import 'package:bitcoin_flutter/src/ecpair.dart';
 
 main() {
-  final fixtures = json.decode(new File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8));
+  final fixtures = json.decode(new File('test/fixtures/transaction.json')
+      .readAsStringSync(encoding: utf8));
   final valids = (fixtures['valid'] as List<dynamic>);
 
   group('Transaction', () {
@@ -51,7 +53,8 @@ main() {
     group('weight/virtualSize', () {
       test('computes virtual size', () {
         valids.forEach((f) {
-          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+          final txHex =
+              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final transaction = Transaction.fromHex(txHex);
           expect(transaction.virtualSize(), f['virtualSize']);
         });
@@ -61,7 +64,8 @@ main() {
     group('addInput', () {
       var prevTxHash;
       setUp(() {
-        prevTxHash = HEX.decode('ffffffff00ffff000000000000000000000000000000000000000000101010ff');
+        prevTxHash = HEX.decode(
+            'ffffffff00ffff000000000000000000000000000000000000000000101010ff');
       });
       test('returns an index', () {
         final tx = new Transaction();
@@ -96,7 +100,8 @@ main() {
     group('getHash/getId', () {
       verify(f) {
         test('should return the id for ${f['id']} (${f['description']})', () {
-          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+          final txHex =
+              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final tx = Transaction.fromHex(txHex);
           expect(HEX.encode(tx.getHash()), f['hash']);
           expect(tx.getId(), f['id']);
@@ -108,7 +113,9 @@ main() {
 
     group('isCoinbase', () {
       verify(f) {
-        test('should return ${f['coinbase']} for ${f['id']} (${f['description']})', () {
+        test(
+            'should return ${f['coinbase']} for ${f['id']} (${f['description']})',
+            () {
           final tx = Transaction.fromHex(f['hex']);
           expect(tx.isCoinbase(), f['coinbase']);
         });
@@ -119,12 +126,61 @@ main() {
 
     group('hashForSignature', () {
       (fixtures['hashForSignature'] as List<dynamic>).forEach((f) {
-        test('should return ${f['hash']} for ${f['description'] != null ? 'case "' + f['description'] + '"' : f['script']}', () {
+        test(
+            'should return ${f['hash']} for ${f['description'] != null ? 'case "' + f['description'] + '"' : f['script']}',
+            () {
           final tx = Transaction.fromHex(f['txHex']);
           final script = bscript.fromASM(f['script']);
-          expect(HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])), f['hash']);
+          expect(
+              HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])),
+              f['hash']);
         });
       });
+    });
+  });
+
+  group('Supplementary transaction', () {
+    final tx = new Transaction();
+    final scriptPubKey = new Uint8List(16);
+    test('add output at', () {
+      final result = tx.addOutputAt(scriptPubKey, 1, 0);
+      expect(result, 0);
+    });
+
+    test('add addBaseOutput', () {
+      final output = new Output(script: scriptPubKey, value: 1);
+      output.toString();
+      final result = tx.addBaseOutput(output);
+      expect(result, 1);
+    });
+
+    test('set value', () {
+      final intValue = 10;
+      tx.setVersion(intValue);
+      tx.setLocktime(intValue);
+      expect(tx.version, intValue);
+      expect(tx.locktime, intValue);
+    });
+
+    test('signSchnorr', () {
+      final key = Uint8List.fromList(HEX.decode(
+          '0000000000000000000000000000000000000000000000000000000000000001'));
+      ;
+      final tapLeafScript =
+          new TapLeafScript(version: 1, script: key, controlBlock: key);
+      final hash = HEX.decode(
+          'ffffffff00ffff000000000000000000000000000000000000000000101010ff');
+      final input = new Input(
+          hash: new Uint8List.fromList(hash),
+          index: 0,
+          value: 0,
+          prevOutScript: key,
+          tapLeafScript: [tapLeafScript]);
+      input.toString();
+      tx.ins.add(input);
+      final keyPair = ECPair.fromPrivateKey(key);
+      tx.signSchnorr(vin: 0, keyPair: keyPair);
+      tx.toString();
     });
   });
 }
@@ -152,13 +208,14 @@ Transaction fromRaw(raw, [isWitness]) {
     } else if (txIn['script'] != null && txIn['script'] != '') {
       scriptSig = bscript.fromASM(txIn['script']);
     }
-    tx.addInput(txHash, txIn['index'], sequence: txIn['sequence'], scriptSig: scriptSig);
+    tx.addInput(txHash, txIn['index'],
+        sequence: txIn['sequence'], scriptSig: scriptSig);
 
     if (!isWitness) return;
 
     final witness = (txIn['witness'] as List<dynamic>)
-      .map((e) => HEX.decode(e.toString()) as Uint8List)
-      .toList();
+        .map((e) => HEX.decode(e.toString()) as Uint8List)
+        .toList();
     tx.setWitness(i, witness);
   });
 
