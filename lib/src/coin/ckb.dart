@@ -3,11 +3,15 @@ import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:bip32/bip32.dart' as bip32;
+import 'package:bitcoin_flutter/bitcoin_flutter.dart';
 import 'package:pointycastle/digests/blake2b.dart';
 import 'package:convert/convert.dart' show hex;
 
 import 'package:bitcoin_flutter/src/bech32/bech32.dart';
 import 'package:bitcoin_flutter/src/utils/script.dart';
+import 'ckbDep/Secp256k1Sigh.dart';
+import 'ckbDep/data_type.dart';
+import 'ckbDep/transition.dart';
 
 const CKB_HASH_PERSONALIZATION = 'ckb-default-hash';
 const CKB_CODE_HASH =
@@ -16,6 +20,7 @@ const SHORT_ID = 0;
 const MAX_LENGTH = 1023;
 const PREFIX = 'ckb';
 const BIP_PATH = "m/44'/309'/0'/0/0";
+
 /// Generates pubkey seed by mnemonic
 Uint8List mnemonicToPubKey(String mnemonic) {
   final seed = bip39.mnemonicToSeed(mnemonic);
@@ -31,7 +36,7 @@ Uint8List privateKeyToPubKey(Uint8List privateKey) {
 
 /// Generate arg
 Uint8List pubKeyToArg(Uint8List pubKey) {
-  /// [99, 107, 98, 45, 100, 101, 102, 97, 117, 108, 116, 45, 104, 97, 115]
+  /// [99, 107, 98, 45, 100, 101, 102, 97, 117, 108, 116, 45, 104, 97, 115, 104]
   final personalization =
       Uint8List.fromList(utf8.encode(CKB_HASH_PERSONALIZATION));
   final blake2b =
@@ -71,7 +76,7 @@ String generateAddress(dynamic arg,
 /// Generates Ckb long address from short address
 String shortAddressToLongAddress(String shortAddress) {
   final script = addressToScript(shortAddress, type: AddressType.SHORT);
-  return argToLongAddress(Uint8List.fromList(hex.decode(script.arg!)));
+  return argToLongAddress(Uint8List.fromList(hex.decode(script.args!)));
 }
 
 String argToShortAddress(Uint8List hash) {
@@ -121,7 +126,7 @@ Script addressToScript(address, {String type = AddressType.LONG}) {
       }
       final hashType = codeToHashType(data.sublist(33, 34).first);
       final arg = hex.encode(data.sublist(34, 54));
-      return new Script(hashType: hashType, arg: arg, codeHash: codeHash);
+      return new Script(hashType: hashType, args: arg, codeHash: codeHash);
     case AddressType.SHORT:
       // 1,1,20
       final bechDecode = bech32.decode(address, maxLength: MAX_LENGTH);
@@ -131,37 +136,20 @@ Script addressToScript(address, {String type = AddressType.LONG}) {
       }
       final arg = hex.encode(data.sublist(2, 22));
       return new Script(
-          hashType: Script.Type, arg: arg, codeHash: CKB_CODE_HASH);
+          hashType: Script.Type, args: arg, codeHash: CKB_CODE_HASH);
     default:
       throw ArgumentError('Unsupported address type');
   }
 }
 
-class Script {
-  static const String Data = 'data';
-  static const String Type = 'type';
-
-  String? codeHash;
-  String? arg;
-  String? hashType;
-
-  Script({this.codeHash, this.hashType, this.arg});
-}
-
-class AddressType{
+class AddressType {
   static const String LONG = 'long';
   static const String SHORT = 'short';
 }
 
-// /// pure Ed25519 signature
-// SignedMessage suiSignatureFromSeed(Uint8List message, Uint8List privateKey) {
-//   SigningKey signingKey = generateNewPairKeyBySeed(privateKey);
-//   return signingKey.sign(message);
-// }
-
-// bool suiVerifySignedMessage(Uint8List publicKey, SignedMessage signedMessage) {
-//   VerifyKey verifyKey = new VerifyKey(Uint8List.fromList(publicKey));
-//   return verifyKey.verify(
-//       signature: signedMessage.signature,
-//       message: Uint8List.fromList(signedMessage.message));
-// }
+CKBTransaction signTx(CKBTransaction tx, String privateKey) {
+  final signer = new Secp256k1SighashAllBuilder(tx);
+  final scriptGroup = ScriptGroup(regionToList(0, tx.inputs!.length));
+  signer.sign(scriptGroup, privateKey);
+  return signer.buildTx();
+}
