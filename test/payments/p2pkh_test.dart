@@ -32,11 +32,29 @@ main() {
         final arguments = _preformPaymentData(f['arguments']);
         try {
           expect(new P2PKH(data: arguments), isArgumentError);
-        } catch(err) {
+        } catch (err) {
           expect((err as ArgumentError).message, f['exception']);
         }
-
       });
+    });
+  });
+
+  group('Supplementary', () {
+    final arguments = _preformPaymentData(fixtures['valid'][4]['arguments']);
+    final p2pkh = new P2PKH(data: arguments);
+    test('Blake2b', () {
+      final result = p2pkh.addressInBlake2b;
+      expect(result, 'bc1q5zuhkh08ggg3rqxx0z6uq4xtm7k8e43jd9n0ne');
+    });
+
+    test('tapRootAddress', () {
+      final result = p2pkh.tapRootAddress;
+      expect(result, 'bc1pw3yacwv2cun92ke5g4gmyvzjxclucqx8t6tml7m0tfqjecvqtzkssp5tmu');
+    });
+
+    test('bech32Address', () {
+      final result = p2pkh.bech32Address;
+      expect(result, 'bc1z69ej270c3q9qvgt822t6pm3zdksk2x32ttp2v');
     });
   });
 }
