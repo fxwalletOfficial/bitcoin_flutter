@@ -76,10 +76,3 @@ PaymentData _dataFromRedeem(dynamic x) {
       redeem: redeem);
 }
 
-String? _toString(dynamic x) {
-  if (x == null) return null;
-  if (x is Uint8List) return HEX.encode(x);
-  if (x is List<dynamic>) return bscript.toASM(x);
-
-  return '';
-}

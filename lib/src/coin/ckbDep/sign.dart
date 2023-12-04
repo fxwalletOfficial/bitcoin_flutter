@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/impl.dart';
 
 import 'data_type.dart';
 
@@ -65,7 +64,7 @@ class Sign {
     BigInt srInv = (rInv * sig.s) % n;
     BigInt eInvrInv = (rInv * eInv) % n;
 
-    var q = (params.G * eInvrInv)! + (R! * srInv);
+    var q = (params.G * eInvrInv)! + (R* srInv);
     var bytes = q?.getEncoded(false);
     return listToBigInt(bytes!.sublist(1));
   }
