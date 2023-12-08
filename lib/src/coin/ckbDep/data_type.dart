@@ -12,6 +12,12 @@ class CellDep {
   String depType;
 
   CellDep({this.outPoint, this.depType = Code});
+
+  factory CellDep.fromJson(Map<String, dynamic> json) {
+    return CellDep(
+        outPoint: OutPoint.fromJson(json['out_point']),
+        depType: json['dep_type']);
+  }
 }
 
 class OutPoint {
@@ -19,6 +25,10 @@ class OutPoint {
   String? index;
 
   OutPoint({this.txHash, this.index});
+
+  factory OutPoint.fromJson(Map<String, dynamic> json) {
+    return OutPoint(txHash: json['tx_hash'], index: json['index']);
+  }
 }
 
 class CellInput {
@@ -26,6 +36,12 @@ class CellInput {
   String? since;
 
   CellInput({this.previousOutput, this.since});
+
+  factory CellInput.fromJson(Map<String, dynamic> json) {
+    return CellInput(
+        previousOutput: OutPoint.fromJson(json['previous_output']),
+        since: json['since']);
+  }
 }
 
 class CellOutput {
@@ -34,6 +50,13 @@ class CellOutput {
   Script? type;
 
   CellOutput({this.capacity, this.lock, this.type});
+
+  factory CellOutput.fromJson(Map<String, dynamic> json) {
+    return CellOutput(
+        capacity: json['capacity'],
+        lock: Script.fromJson(json['lock']),
+        type: json['type'] == null ? null : Script.fromJson(json['type']));
+  }
 }
 
 class Script {

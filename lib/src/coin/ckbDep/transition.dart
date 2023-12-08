@@ -21,6 +21,32 @@ class CKBTransaction {
       this.outputsData,
       this.witnesses});
 
+  factory CKBTransaction.fromJson(Map<String, dynamic> json) {
+    return CKBTransaction(
+        version: json['version'],
+        hash: json['hash'],
+        cellDeps: (json['cell_deps'] as List)
+            .map((cellDep) => CellDep.fromJson(cellDep))
+            .toList(),
+        headerDeps: (json['header_deps'] as List)
+            .map((headerDep) => headerDep.toString())
+            .toList(),
+        inputs: (json['inputs'] as List)
+            .map((input) => CellInput.fromJson(input))
+            .toList(),
+        outputs: (json['outputs'] as List)
+            .map((output) => CellOutput.fromJson(output))
+            .toList(),
+        outputsData: (json['outputs_data'] as List)
+            .map((outputData) => outputData.toString())
+            .toList(),
+        witnesses: (json['witnesses'] as List)
+            .map((witness) => witness == '0x'
+                ? witness
+                : Witness(lock: Witness.SIGNATURE_PLACEHOLDER))
+            .toList());
+  }
+
   String computeHash() {
     var blake2b = Blake2b();
     blake2b.update(Serializer.serializeRawTransaction(this).toBytes());
