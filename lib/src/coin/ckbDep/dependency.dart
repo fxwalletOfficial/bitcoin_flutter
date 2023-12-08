@@ -59,14 +59,6 @@ class Blake2b {
     state.update(input, 0, input.length);
   }
 
-  void updateWithUtf8(String utf8String) {
-    update(Uint8List.fromList(utf8.encode(utf8String)));
-  }
-
-  void updateWithHex(String hex) {
-    update(hexToList(hex));
-  }
-
   Uint8List doFinal() {
     var hash = Uint8List(32);
     state.doFinal(hash, 0);
@@ -74,20 +66,6 @@ class Blake2b {
   }
 
   String doFinalString() => listToHex(doFinal());
-
-  static String blake160(String value) {
-    var blake2b = Blake2b();
-    blake2b.updateWithHex(value);
-
-    return appendHexPrefix(
-        listToHexNoPrefix(blake2b.doFinal()).substring(0, 40));
-  }
-
-  static String hash(String value) {
-    var blake2b = Blake2b();
-    blake2b.updateWithHex(value);
-    return blake2b.doFinalString();
-  }
 }
 
 class Serializer {
@@ -168,19 +146,19 @@ class Serializer {
     return Table(list);
   }
 
-  static Dynamic<SerializeType> serializeWitnesses(List<dynamic> witnesses) {
-    var witnessList = [];
-    for (var witness in witnesses) {
-      if (witness is Witness) {
-        witnessList.add(serializeWitnessArgs(witness));
-      } else {
-        witnessList.add(Bytes.fromHex(witness));
-      }
-    }
-    witnessList =
-        witnessList.map((witness) => witness as SerializeType).toList();
-    return Dynamic<SerializeType>(witnessList as List<SerializeType<dynamic>>);
-  }
+  // static Dynamic<SerializeType> serializeWitnesses(List<dynamic> witnesses) {
+  //   var witnessList = [];
+  //   for (var witness in witnesses) {
+  //     if (witness is Witness) {
+  //       witnessList.add(serializeWitnessArgs(witness));
+  //     } else {
+  //       witnessList.add(Bytes.fromHex(witness));
+  //     }
+  //   }
+  //   witnessList =
+  //       witnessList.map((witness) => witness as SerializeType).toList();
+  //   return Dynamic<SerializeType>(witnessList as List<SerializeType<dynamic>>);
+  // }
 
   static Table serializeRawTransaction(CKBTransaction transaction) {
     var tx = Convert.parseTransaction(transaction);
@@ -195,10 +173,10 @@ class Serializer {
     ]);
   }
 
-  static Table serializeTransaction(CKBTransaction transaction) {
-    return Table([
-      serializeRawTransaction(transaction),
-      serializeWitnesses(transaction.witnesses!)
-    ]);
-  }
+  // static Table serializeTransaction(CKBTransaction transaction) {
+  //   return Table([
+  //     serializeRawTransaction(transaction),
+  //     serializeWitnesses(transaction.witnesses!)
+  //   ]);
+  // }
 }

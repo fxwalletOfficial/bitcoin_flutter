@@ -18,6 +18,13 @@ class CellDep {
         outPoint: OutPoint.fromJson(json['out_point']),
         depType: json['dep_type']);
   }
+
+  String toJson() {
+    return jsonEncode({
+      'out_point': outPoint?.toJson(),
+      'dep_type': depType,
+    });
+  }
 }
 
 class OutPoint {
@@ -28,6 +35,13 @@ class OutPoint {
 
   factory OutPoint.fromJson(Map<String, dynamic> json) {
     return OutPoint(txHash: json['tx_hash'], index: json['index']);
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'tx_hash': txHash,
+      'index': index,
+    });
   }
 }
 
@@ -41,6 +55,13 @@ class CellInput {
     return CellInput(
         previousOutput: OutPoint.fromJson(json['previous_output']),
         since: json['since']);
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'previous_output': previousOutput?.toJson(),
+      'since': since,
+    });
   }
 }
 
@@ -56,6 +77,11 @@ class CellOutput {
         capacity: json['capacity'],
         lock: Script.fromJson(json['lock']),
         type: json['type'] == null ? null : Script.fromJson(json['type']));
+  }
+
+  String toJson() {
+    return jsonEncode(
+        {'capacity': capacity, 'lock': lock?.toJson(), 'type': type?.toJson()});
   }
 }
 
@@ -79,16 +105,6 @@ class Script {
   String toJson() {
     return jsonEncode(
         {'code_hash': codeHash, 'args': args, 'hash_type': hashType});
-  }
-
-  int calculateByteSize() {
-    var byteSize = 1;
-    byteSize += codeHash == null ? 0 : hexToList(codeHash!).length;
-    if (args == null || args!.isEmpty) {
-      return byteSize;
-    }
-    byteSize += hexToList(args!).length;
-    return byteSize;
   }
 }
 

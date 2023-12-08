@@ -1,5 +1,7 @@
-import 'dependency.dart';
 import 'data_type.dart';
+import 'dart:convert';
+
+import 'dependency.dart';
 
 class CKBTransaction {
   String? version;
@@ -45,6 +47,20 @@ class CKBTransaction {
                 ? witness
                 : Witness(lock: Witness.SIGNATURE_PLACEHOLDER))
             .toList());
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'version': version,
+      'hash': hash,
+      'cell_deps': cellDeps?.map((cellDep) => cellDep.toJson()).toList(),
+      'header_deps': headerDeps,
+      'inputs': inputs?.map((input) => input.toJson()).toList(),
+      'outputs': outputs?.map((output) => output.toJson()).toList(),
+      'outputs_data': outputsData,
+      'witnesses':
+          witnesses?.map((witness) => witness == '0x' ? witness : null).toList()
+    });
   }
 
   String computeHash() {
