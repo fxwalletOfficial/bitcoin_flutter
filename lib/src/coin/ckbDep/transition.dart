@@ -59,7 +59,7 @@ class CKBTransaction {
       'outputs': outputs?.map((output) => output.toJson()).toList(),
       'outputs_data': outputsData,
       'witnesses':
-          witnesses?.map((witness) => witness == '0x' ? witness : null).toList()
+          witnesses?.map((witness) => witness is String ? witness : null).toList()
     });
   }
 
