@@ -35,7 +35,6 @@ class Sign {
         break;
       }
     }
-    recId = 0;
     if (recId == -1) {
       throw Exception(
           'Could not construct a recoverable key. This should never happen');
