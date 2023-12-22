@@ -5,7 +5,6 @@ import 'package:test/test.dart';
 import 'package:convert/convert.dart' show hex;
 
 import 'package:bitcoin_flutter/src/coin/ckb.dart' as ckb;
-import 'package:bitcoin_flutter/src/coin/ckbDep/transition.dart' as ckbTx;
 
 void main() {
   const String TEST_MNEMONIC =
@@ -52,7 +51,7 @@ void main() {
 
       const privateKey =
           '0xae236ca02ca5169bc8e1f865e6bc59be636d830f23a6a28cbbb2d1202202552f';
-      ckbTx.CKBTransaction tx = ckbTx.CKBTransaction.fromJson(transactionJson);
+      ckb.CKBTransaction tx = ckb.CKBTransaction.fromJson(transactionJson);
       tx.toJson();
       final result = ckb.signTx(tx, privateKey);
       expect(result.witnesses, [
