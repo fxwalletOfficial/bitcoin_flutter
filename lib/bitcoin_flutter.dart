@@ -13,3 +13,4 @@ export 'package:bitcoin_flutter/src/transaction.dart';
 export 'package:bitcoin_flutter/src/transaction_builder.dart';
 export 'package:bitcoin_flutter/src/utils/magic_hash.dart';
 export 'package:bitcoin_flutter/src/coin/ckb.dart';
+export 'package:bitcoin_flutter/src/coin/sc.dart';
