@@ -80,6 +80,84 @@ class Sc {
     final privateKey = mnemonicToPrivateKey(mnemonic);
     return privateKeyToPairKey(privateKey);
   }
+
+  static String signMessage(Uint8List message, Uint8List privateKey) {
+    SigningKey signingKey = privateKeyToPairKey(privateKey);
+    SignedMessage signedMessage = signingKey.sign(message);
+    final signature = signedMessage.signature;
+    return base64.encode(signature);
+  }
+
+  static List<ScSignature> signMessages(
+      List<scInputData> inputData, Uint8List privateKey) {
+    final List<ScSignature> signatures = [];
+    for (var i = 0; i < inputData.length; i++) {
+      final messageByte = Uint8List.fromList(hex.decode(inputData[i].message));
+      signatures.add(ScSignature(
+          parentID: inputData[0].ID,
+          publicKeyIndex: 0,
+          coveredFields: CoveredFields(wholeTransaction: true),
+          signature: signMessage(messageByte, privateKey)));
+    }
+    return signatures;
+  }
+}
+
+class scInputData {
+  late String ID;
+  late String message;
+
+  scInputData(String ID, String message) {
+    this.ID = ID;
+    this.message = message;
+  }
+
+  factory scInputData.fromJson(Map<String, dynamic> json) {
+    return scInputData(json['ID']!, json['message']!);
+  }
+}
+
+class ScSignature {
+  String? parentID;
+  int? publicKeyIndex;
+  CoveredFields? coveredFields;
+  String? signature;
+
+  ScSignature(
+      {this.parentID, this.publicKeyIndex, this.coveredFields, this.signature});
+
+  factory ScSignature.fromJson(Map<String, dynamic> json) {
+    return ScSignature(
+        parentID: json['parentID'],
+        publicKeyIndex: json['publicKeyIndex'],
+        coveredFields: CoveredFields.fromJson(
+            [json['coveredFields']] as Map<String, dynamic>),
+        signature: json['signature']);
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'parentID': parentID,
+      'publicKeyIndex': publicKeyIndex,
+      'coveredFields': coveredFields?.toJson(),
+      'signature': signature
+    });
+  }
+}
+
+class CoveredFields {
+  bool? wholeTransaction;
+  CoveredFields({this.wholeTransaction});
+
+  factory CoveredFields.fromJson(Map<String, dynamic> json) {
+    return CoveredFields(wholeTransaction: json['wholeTransaction']);
+  }
+
+  String toJson() {
+    return jsonEncode({
+      'wholeTransaction': wholeTransaction,
+    });
+  }
 }
 
 Uint8List black2bHash(Uint8List hashRaw) {
