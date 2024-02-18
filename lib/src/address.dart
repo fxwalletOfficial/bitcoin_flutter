@@ -67,8 +67,11 @@ class Address {
 
     final root = ExtendedPrivateKey.master(seed, prefix);
     final r = root.forPath(path);
+    return extendedFromPrivateKey((r as ExtendedPrivateKey).key);
+  }
 
-    final q = secp256k1.G * (r as ExtendedPrivateKey).key;
+  static String extendedFromPrivateKey(BigInt privateKey) {
+    final q = secp256k1.G * privateKey;
 
     final publicParams = ECPublicKey(q, secp256k1);
     final pk = publicParams.Q!.getEncoded(false);
