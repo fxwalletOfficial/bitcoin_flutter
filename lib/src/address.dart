@@ -92,4 +92,18 @@ class Address {
     final hash = convertBits(payload.sublist(0, 34), 5, 8, strictMode: true);
     return bs58check.encode(Uint8List.fromList(hash));
   }
+
+  static String legacyToBch({required String address, required String prefix}) {
+    final decode = bs58check.decode(address);
+    final hash = decode.sublist(1);
+    final type = 'P2PKH';
+
+    final prefixData = prefixToUint5Array(prefix) + [0];
+    final versionByte = getTypeBits(type) + getHashSizeBits(hash);
+    final payloadData = convertBits([versionByte] + hash, 8, 5);
+    final checksumData = prefixData + payloadData + List.generate(8, (index) => 0);
+    final payload = payloadData + checksumToUint5Array(polymod(checksumData));
+
+    return '${prefix}:${base32Encode(payload)}';
+  }
 }
